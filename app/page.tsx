@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 
 type Room = "全部" | "客厅" | "厨房" | "卧室" | "卫生间" | "阳台";
 type Tab = "today" | "week" | "archive";
+type PlanPeriod = "week" | "quarter" | "half";
 
 type Task = {
   id: string;
@@ -88,6 +89,109 @@ const weekDays = [
   { day: "日", date: "09", done: 0, total: 1 },
 ];
 
+const cyclePlans = {
+  quarter: [
+    {
+      id: "q-ac",
+      date: "08.23",
+      title: "空调滤网清洁与消毒",
+      area: "全屋",
+      code: "QTR-001",
+      note: "拆洗滤网，晾干后复位",
+    },
+    {
+      id: "q-hood",
+      date: "08.30",
+      title: "油烟机滤网深度清洗",
+      area: "厨房",
+      code: "QTR-002",
+      note: "浸泡除油，检查集油盒",
+    },
+    {
+      id: "q-fridge",
+      date: "09.06",
+      title: "冰箱冷凝区与背部除尘",
+      area: "厨房",
+      code: "QTR-003",
+      note: "断电后清洁散热区域",
+    },
+    {
+      id: "q-curtain",
+      date: "09.13",
+      title: "窗帘、纱窗集中清洗",
+      area: "全屋",
+      code: "QTR-004",
+      note: "按材质选择清洗方式",
+    },
+    {
+      id: "q-mattress",
+      date: "09.20",
+      title: "床垫翻面与除螨",
+      area: "卧室",
+      code: "QTR-005",
+      note: "吸尘后通风 2 小时",
+    },
+    {
+      id: "q-drain",
+      date: "09.27",
+      title: "厨房及卫浴下水养护",
+      area: "厨卫",
+      code: "QTR-006",
+      note: "清理滤网并检查排水速度",
+    },
+  ],
+  half: [
+    {
+      id: "h-alarm",
+      date: "07月",
+      title: "烟雾报警器电池检查",
+      area: "全屋",
+      code: "HYR-001",
+      note: "测试警报，记录电池日期",
+    },
+    {
+      id: "h-ac",
+      date: "08月",
+      title: "空调内部深度维护",
+      area: "全屋",
+      code: "HYR-002",
+      note: "蒸发器、风轮及排水管检查",
+    },
+    {
+      id: "h-storage",
+      date: "09月",
+      title: "全屋柜体断舍离",
+      area: "全屋",
+      code: "HYR-003",
+      note: "按保留、转赠、丢弃分类",
+    },
+    {
+      id: "h-light",
+      date: "10月",
+      title: "高位灯具与吊顶除尘",
+      area: "全屋",
+      code: "HYR-004",
+      note: "断电操作，检查灯泡状态",
+    },
+    {
+      id: "h-upholstery",
+      date: "11月",
+      title: "沙发与床垫深度清洁",
+      area: "客卧",
+      code: "HYR-005",
+      note: "重点处理缝隙与织物表面",
+    },
+    {
+      id: "h-appliance",
+      date: "12月",
+      title: "冰箱与洗衣机保养",
+      area: "家电",
+      code: "HYR-006",
+      note: "清洁密封条、滤网与滚筒",
+    },
+  ],
+};
+
 function readStoredTasks(): Task[] {
   try {
     const saved = window.localStorage.getItem("household-archive-custom");
@@ -99,8 +203,10 @@ function readStoredTasks(): Task[] {
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<Tab>("today");
+  const [planPeriod, setPlanPeriod] = useState<PlanPeriod>("week");
   const [activeRoom, setActiveRoom] = useState<Room>("全部");
   const [completed, setCompleted] = useState<string[]>(["floor", "books"]);
+  const [cycleCompleted, setCycleCompleted] = useState<string[]>([]);
   const [customTasks, setCustomTasks] = useState<Task[]>([]);
   const [isAdding, setIsAdding] = useState(false);
   const [newTitle, setNewTitle] = useState("");
@@ -112,6 +218,10 @@ export default function Home() {
     try {
       const saved = window.localStorage.getItem("household-archive-done");
       if (saved) setCompleted(JSON.parse(saved));
+      const savedCycle = window.localStorage.getItem(
+        "household-archive-cycle-done",
+      );
+      if (savedCycle) setCycleCompleted(JSON.parse(savedCycle));
       setCustomTasks(readStoredTasks());
     } catch {
       // The app remains fully usable when browser storage is unavailable.
@@ -141,6 +251,19 @@ export default function Home() {
     setCompleted(next);
     window.localStorage.setItem("household-archive-done", JSON.stringify(next));
     setNotice(next.includes(id) ? "已完成一项，档案已更新" : "已撤销完成状态");
+    window.setTimeout(() => setNotice(""), 1800);
+  }
+
+  function toggleCycleTask(id: string) {
+    const next = cycleCompleted.includes(id)
+      ? cycleCompleted.filter((taskId) => taskId !== id)
+      : [...cycleCompleted, id];
+    setCycleCompleted(next);
+    window.localStorage.setItem(
+      "household-archive-cycle-done",
+      JSON.stringify(next),
+    );
+    setNotice(next.includes(id) ? "周期维护已完成" : "已撤销完成状态");
     window.setTimeout(() => setNotice(""), 1800);
   }
 
@@ -320,56 +443,190 @@ export default function Home() {
               <div className="page-heading">
                 <div className="section-kicker">
                   <span>02</span>
-                  <p>WEEKLY SCHEDULE</p>
+                  <p>MAINTENANCE CYCLE</p>
                 </div>
-                <h2 id="week-title">周计划</h2>
-                <p>8月3日—8月9日 / 21 项维护任务</p>
-              </div>
-
-              <div className="week-grid">
-                {weekDays.map((item) => (
-                  <div className={item.current ? "current" : ""} key={item.day}>
-                    <span>周{item.day}</span>
-                    <strong>{item.date}</strong>
-                    <b>
-                      {item.done}/{item.total}
-                    </b>
-                    <i
-                      style={{
-                        height: `${Math.max((item.done / item.total) * 100, 6)}%`,
-                      }}
-                    />
-                  </div>
-                ))}
-              </div>
-
-              <div className="schedule-table">
-                <div className="schedule-head">
-                  <span>执行日期</span>
-                  <span>维护项目</span>
-                  <span>区域</span>
-                </div>
-                {[
-                  ["08.07 / 今日", "镜面去水渍", "卫生间"],
-                  ["08.07 / 今日", "冰箱食品检查", "厨房"],
-                  ["08.08 / 周六", "全屋地面清洁", "全屋"],
-                  ["08.08 / 周六", "床品更换", "卧室"],
-                  ["08.09 / 周日", "阳台玻璃轨道", "阳台"],
-                ].map((row) => (
-                  <div className="schedule-row" key={row[0] + row[1]}>
-                    <span>{row[0]}</span>
-                    <strong>{row[1]}</strong>
-                    <span>{row[2]}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="blue-note">
-                <span>MAINTENANCE NOTE / 备注 01</span>
+                <h2 id="week-title">周期计划</h2>
                 <p>
-                  周末安排耗时较长的深度清洁；日常维护尽量控制在 20 分钟内。
+                  {planPeriod === "week" && "8月3日—8月9日 / 21 项维护任务"}
+                  {planPeriod === "quarter" && "2026年第 3 季度 / 6 项深度维护"}
+                  {planPeriod === "half" && "2026年下半年 / 6 项系统保养"}
                 </p>
               </div>
+
+              <div className="period-switch" aria-label="选择计划周期">
+                {[
+                  ["week", "本周", "7 DAYS"],
+                  ["quarter", "季度", "3 MONTHS"],
+                  ["half", "半年", "6 MONTHS"],
+                ].map(([value, label, english]) => (
+                  <button
+                    className={planPeriod === value ? "active" : ""}
+                    key={value}
+                    onClick={() => setPlanPeriod(value as PlanPeriod)}
+                    type="button"
+                  >
+                    <span>{label}</span>
+                    <small>{english}</small>
+                  </button>
+                ))}
+              </div>
+
+              {planPeriod === "week" && (
+                <>
+                  <div className="week-grid">
+                    {weekDays.map((item) => (
+                      <div
+                        className={item.current ? "current" : ""}
+                        key={item.day}
+                      >
+                        <span>周{item.day}</span>
+                        <strong>{item.date}</strong>
+                        <b>
+                          {item.done}/{item.total}
+                        </b>
+                        <i
+                          style={{
+                            height: `${Math.max(
+                              (item.done / item.total) * 100,
+                              6,
+                            )}%`,
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="schedule-table">
+                    <div className="schedule-head">
+                      <span>执行日期</span>
+                      <span>维护项目</span>
+                      <span>区域</span>
+                    </div>
+                    {[
+                      ["08.07 / 今日", "镜面去水渍", "卫生间"],
+                      ["08.07 / 今日", "冰箱食品检查", "厨房"],
+                      ["08.08 / 周六", "全屋地面清洁", "全屋"],
+                      ["08.08 / 周六", "床品更换", "卧室"],
+                      ["08.09 / 周日", "阳台玻璃轨道", "阳台"],
+                    ].map((row) => (
+                      <div className="schedule-row" key={row[0] + row[1]}>
+                        <span>{row[0]}</span>
+                        <strong>{row[1]}</strong>
+                        <span>{row[2]}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="blue-note">
+                    <span>MAINTENANCE NOTE / 备注 01</span>
+                    <p>
+                      周末安排耗时较长的深度清洁；日常维护尽量控制在 20
+                      分钟内。
+                    </p>
+                  </div>
+                </>
+              )}
+
+              {planPeriod !== "week" && (
+                <>
+                  <div className="cycle-overview">
+                    <div>
+                      <span>
+                        {planPeriod === "quarter" ? "Q3" : "H2"} / 2026
+                      </span>
+                      <strong>
+                        {
+                          cyclePlans[planPeriod].filter((item) =>
+                            cycleCompleted.includes(item.id),
+                          ).length
+                        }
+                        <small>/06</small>
+                      </strong>
+                      <p>已完成计划</p>
+                    </div>
+                    <div className="cycle-copy">
+                      <small>PERIODIC MAINTENANCE</small>
+                      <h3>
+                        {planPeriod === "quarter"
+                          ? "季度深度维护"
+                          : "半年系统保养"}
+                      </h3>
+                      <p>
+                        {planPeriod === "quarter"
+                          ? "集中处理日常清洁覆盖不到的家电、织物与管道。"
+                          : "检查家庭关键设备，完成高位、重型及季节性项目。"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div
+                    className={`cycle-ruler ${
+                      planPeriod === "quarter" ? "quarter" : "half"
+                    }`}
+                  >
+                    {(planPeriod === "quarter"
+                      ? ["07 JUL", "08 AUG", "09 SEP"]
+                      : [
+                          "07 JUL",
+                          "08 AUG",
+                          "09 SEP",
+                          "10 OCT",
+                          "11 NOV",
+                          "12 DEC",
+                        ]
+                    ).map((month, index) => (
+                      <div key={month}>
+                        <span>{month}</span>
+                        <i className={index === 1 ? "current" : ""} />
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="cycle-list">
+                    <div className="cycle-list-head">
+                      <span>执行 / 项目</span>
+                      <span>周期档案号</span>
+                    </div>
+                    {cyclePlans[planPeriod].map((item, index) => {
+                      const isDone = cycleCompleted.includes(item.id);
+                      return (
+                        <label
+                          className={`cycle-item ${isDone ? "is-done" : ""}`}
+                          key={item.id}
+                        >
+                          <input
+                            checked={isDone}
+                            onChange={() => toggleCycleTask(item.id)}
+                            type="checkbox"
+                          />
+                          <span className="cycle-check">
+                            {isDone ? "✓" : String(index + 1).padStart(2, "0")}
+                          </span>
+                          <span className="cycle-date">{item.date}</span>
+                          <span className="cycle-item-copy">
+                            <strong>{item.title}</strong>
+                            <small>
+                              {item.area} / {item.note}
+                            </small>
+                          </span>
+                          <span className="cycle-code">{item.code}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+
+                  <div className="blue-note">
+                    <span>
+                      {planPeriod === "quarter"
+                        ? "QUARTERLY NOTE / 季度备注"
+                        : "HALF-YEAR NOTE / 半年备注"}
+                    </span>
+                    <p>
+                      完成后勾选归档；涉及拆机、登高或电路的项目，建议安排专业人员处理。
+                    </p>
+                  </div>
+                </>
+              )}
             </section>
           )}
 
@@ -451,7 +708,7 @@ export default function Home() {
             type="button"
           >
             <span>02</span>
-            周计划
+            周期计划
           </button>
           <button
             className="new-task-nav"
@@ -528,6 +785,8 @@ export default function Home() {
                     <option>每周 1 次</option>
                     <option>每周 2–3 次</option>
                     <option>每月 1 次</option>
+                    <option>每季度 1 次</option>
+                    <option>每半年 1 次</option>
                   </select>
                 </label>
               </div>
