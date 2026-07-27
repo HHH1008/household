@@ -117,11 +117,30 @@ button {
   padding: 18px 16px 8px;
   overflow: hidden;
   background:
+    linear-gradient(rgba(18, 63, 200, 0.26) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(18, 63, 200, 0.26) 1px, transparent 1px),
     linear-gradient(rgba(18, 63, 200, 0.09) 1px, transparent 1px),
     linear-gradient(90deg, rgba(18, 63, 200, 0.09) 1px, transparent 1px),
+    linear-gradient(
+      45deg,
+      transparent 49.7%,
+      rgba(18, 63, 200, 0.075) 49.85%,
+      rgba(18, 63, 200, 0.075) 50.15%,
+      transparent 50.3%
+    ),
     #f6f6f2;
-  background-position: -1px -1px;
-  background-size: 24px 24px;
+  background-position:
+    -1px -1px,
+    -1px -1px,
+    -1px -1px,
+    -1px -1px,
+    0 0;
+  background-size:
+    60px 60px,
+    60px 60px,
+    12px 12px,
+    12px 12px,
+    240px 240px;
 }
 
 .hero-title::before,
@@ -134,13 +153,13 @@ button {
 .hero-title::before {
   top: 8px;
   left: 4px;
-  content: "0MM";
+  content: "30° ANGLE_REF";
 }
 
 .hero-title::after {
   top: 8px;
   right: 4px;
-  content: "480MM / SCALE 1:1";
+  content: "SCALE 1:1.00";
 }
 
 .hero-title > p {
