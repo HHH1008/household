@@ -299,6 +299,82 @@ button {
   transition: width 280ms ease;
 }
 
+.week-navigator {
+  display: grid;
+  grid-template-columns: 82px 1fr 82px;
+  min-height: 72px;
+  border-bottom: 1px solid var(--blue);
+  background: rgba(244, 244, 241, 0.96);
+}
+
+.week-navigator > button {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+  border: 0;
+  border-right: 1px solid var(--line);
+  background: transparent;
+  color: var(--blue);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.week-navigator > button:last-child {
+  border-right: 0;
+  border-left: 1px solid var(--line);
+}
+
+.week-navigator > button > b {
+  font: 700 16px/1 "Courier New", monospace;
+}
+
+.week-navigator > button > span {
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.week-navigator > button:disabled:not(.week-range-summary) {
+  color: rgba(18, 63, 200, 0.22);
+  cursor: not-allowed;
+}
+
+.week-navigator .week-range-summary {
+  flex-direction: column;
+  gap: 3px;
+  color: var(--ink);
+}
+
+.week-range-summary small {
+  color: var(--blue);
+  font: 700 8px/1 "Courier New", monospace;
+  letter-spacing: 0.08em;
+}
+
+.week-range-summary strong {
+  overflow: hidden;
+  max-width: 100%;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.week-range-summary em {
+  color: var(--blue);
+  font: normal 700 8px/1 "Courier New", monospace;
+}
+
+.week-range-summary:not(:disabled) {
+  background: rgba(18, 63, 200, 0.06);
+}
+
+.week-range-summary:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
 .week-ruler {
   display: grid;
   grid-template-columns: repeat(7, 1fr);

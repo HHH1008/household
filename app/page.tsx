@@ -6,6 +6,14 @@ type Room = "全部" | "客厅" | "厨房" | "卧室" | "卫生间" | "阳台";
 type Tab = "today" | "week" | "archive";
 type PlanPeriod = "week" | "quarter" | "half";
 type WeekDay = "一" | "二" | "三" | "四" | "五" | "六" | "日";
+type CalendarDay = {
+  day: WeekDay;
+  date: string;
+  month: number;
+  year: number;
+  dateKey: string;
+  current: boolean;
+};
 
 type Task = {
   id: string;
@@ -125,20 +133,73 @@ const baseTasks: Task[] = [
 ];
 
 const rooms: Room[] = ["全部", "客厅", "厨房", "卧室", "卫生间", "阳台"];
-
-const weekDays = [
-  { day: "一" as WeekDay, date: "03" },
-  { day: "二" as WeekDay, date: "04" },
-  { day: "三" as WeekDay, date: "05" },
-  { day: "四" as WeekDay, date: "06" },
-  { day: "五" as WeekDay, date: "07", current: true },
-  { day: "六" as WeekDay, date: "08" },
-  { day: "日" as WeekDay, date: "09" },
-];
-
-const allWeekDays = weekDays.map((item) => item.day);
+const allWeekDays: WeekDay[] = ["一", "二", "三", "四", "五", "六", "日"];
+const appTodayKey = "2026-08-07";
+const appCurrentWeekStart = "2026-08-03";
+const firstWeekStart = "2025-12-29";
+const lastWeekStart = "2026-12-28";
 const longTermYears = [2026, 2027];
 const yearMonths = Array.from({ length: 12 }, (_, index) => index + 1);
+
+function parseDateKey(dateKey: string) {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day));
+}
+
+function formatDateKey(date: Date) {
+  return [
+    date.getUTCFullYear(),
+    String(date.getUTCMonth() + 1).padStart(2, "0"),
+    String(date.getUTCDate()).padStart(2, "0"),
+  ].join("-");
+}
+
+function shiftDateKey(dateKey: string, days: number) {
+  const date = parseDateKey(dateKey);
+  date.setUTCDate(date.getUTCDate() + days);
+  return formatDateKey(date);
+}
+
+function getWeekStartKey(dateKey: string) {
+  const date = parseDateKey(dateKey);
+  const weekday = date.getUTCDay() || 7;
+  date.setUTCDate(date.getUTCDate() - weekday + 1);
+  return formatDateKey(date);
+}
+
+function buildWeekDays(weekStart: string): CalendarDay[] {
+  const monday = parseDateKey(weekStart);
+
+  return allWeekDays.map((day, index) => {
+    const date = new Date(monday);
+    date.setUTCDate(monday.getUTCDate() + index);
+    const dateKey = formatDateKey(date);
+
+    return {
+      day,
+      date: String(date.getUTCDate()).padStart(2, "0"),
+      month: date.getUTCMonth() + 1,
+      year: date.getUTCFullYear(),
+      dateKey,
+      current: dateKey === appTodayKey,
+    };
+  });
+}
+
+function formatWeekRange(days: CalendarDay[]) {
+  const first = days[0];
+  const last = days[days.length - 1];
+
+  if (first.year === last.year && first.month === last.month) {
+    return `${first.year}年${first.month}月${first.date}–${last.date}日`;
+  }
+
+  if (first.year === last.year) {
+    return `${first.year}年${first.month}月${first.date}日–${last.month}月${last.date}日`;
+  }
+
+  return `${first.year}.${String(first.month).padStart(2, "0")}.${first.date}–${last.year}.${String(last.month).padStart(2, "0")}.${last.date}`;
+}
 
 function getSuggestedMultiDays(anchor: WeekDay) {
   const anchorIndex = allWeekDays.indexOf(anchor);
@@ -280,26 +341,34 @@ function readStoredTasks(): Task[] {
   }
 }
 
-function isTaskScheduled(task: Task, day: WeekDay) {
-  const date = weekDays.find((item) => item.day === day)?.date;
-
-  if (task.scheduledMonthDay && date) {
-    return Number(date) === task.scheduledMonthDay;
+function isTaskScheduled(task: Task, calendarDay: CalendarDay) {
+  if (task.scheduledMonthDay) {
+    return Number(calendarDay.date) === task.scheduledMonthDay;
   }
 
-  if (task.nextRunDate && date) {
-    return task.nextRunDate === `2026-08-${date}`;
+  if (task.nextRunDate) {
+    return task.nextRunDate === calendarDay.dateKey;
   }
 
-  return (task.scheduledDays ?? ["五"]).includes(day);
+  return (task.scheduledDays ?? ["五"]).includes(calendarDay.day);
+}
+
+function getCompletionKey(dateKey: string, taskId: string) {
+  return `${dateKey}:${taskId}`;
 }
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<Tab>("today");
   const [planPeriod, setPlanPeriod] = useState<PlanPeriod>("week");
+  const [selectedWeekStart, setSelectedWeekStart] = useState(
+    appCurrentWeekStart,
+  );
   const [selectedDay, setSelectedDay] = useState<WeekDay>("五");
   const [activeRoom, setActiveRoom] = useState<Room>("全部");
-  const [completed, setCompleted] = useState<string[]>(["floor", "books"]);
+  const [completed, setCompleted] = useState<string[]>([
+    "2026-08-05:floor",
+    "2026-08-05:books",
+  ]);
   const [cycleCompleted, setCycleCompleted] = useState<string[]>([]);
   const [customTasks, setCustomTasks] = useState<Task[]>([]);
   const [isAdding, setIsAdding] = useState(false);
@@ -316,7 +385,14 @@ export default function Home() {
   useEffect(() => {
     try {
       const saved = window.localStorage.getItem("household-archive-done");
-      if (saved) setCompleted(JSON.parse(saved));
+      if (saved) {
+        const stored: string[] = JSON.parse(saved);
+        setCompleted(
+          stored.map((value) =>
+            value.includes(":") ? value : `${appTodayKey}:${value}`,
+          ),
+        );
+      }
       const savedCycle = window.localStorage.getItem(
         "household-archive-cycle-done",
       );
@@ -328,9 +404,15 @@ export default function Home() {
   }, []);
 
   const tasks = useMemo(() => [...baseTasks, ...customTasks], [customTasks]);
+  const weekDays = useMemo(
+    () => buildWeekDays(selectedWeekStart),
+    [selectedWeekStart],
+  );
+  const selectedDayMeta =
+    weekDays.find((item) => item.day === selectedDay) ?? weekDays[4];
   const selectedDayTasks = useMemo(
-    () => tasks.filter((task) => isTaskScheduled(task, selectedDay)),
-    [selectedDay, tasks],
+    () => tasks.filter((task) => isTaskScheduled(task, selectedDayMeta)),
+    [selectedDayMeta, tasks],
   );
   const filteredTasks = useMemo(
     () =>
@@ -341,7 +423,7 @@ export default function Home() {
   );
 
   const doneCount = selectedDayTasks.filter((task) =>
-    completed.includes(task.id),
+    completed.includes(getCompletionKey(selectedDayMeta.dateKey, task.id)),
   ).length;
   const progress = selectedDayTasks.length
     ? Math.round((doneCount / selectedDayTasks.length) * 100)
@@ -351,27 +433,29 @@ export default function Home() {
     0,
   );
   const finishedMinutes = selectedDayTasks
-    .filter((task) => completed.includes(task.id))
+    .filter((task) =>
+      completed.includes(getCompletionKey(selectedDayMeta.dateKey, task.id)),
+    )
     .reduce((sum, task) => sum + task.estimate, 0);
-  const selectedDayMeta =
-    weekDays.find((item) => item.day === selectedDay) ?? weekDays[4];
   const annualWeekNumber = getIsoWeekNumber(
-    2026,
-    8,
+    selectedDayMeta.year,
+    selectedDayMeta.month,
     Number(selectedDayMeta.date),
   );
+  const isActualToday = selectedDayMeta.dateKey === appTodayKey;
+  const weekRangeLabel = formatWeekRange(weekDays);
+  const isCurrentWeek = selectedWeekStart === appCurrentWeekStart;
   const pageTitle =
     activeTab === "today"
-      ? selectedDay === "五"
+      ? isActualToday
         ? "今日作业"
         : `周${selectedDay}作业`
       : activeTab === "week"
         ? "周期计划"
         : "档案总览";
-  const selectedDateHeading =
-    selectedDay === "五"
-      ? `8月${selectedDayMeta.date}日 · 今日`
-      : `8月${selectedDayMeta.date}日 · 周${selectedDay}`;
+  const selectedDateHeading = `${selectedDayMeta.month}月${selectedDayMeta.date}日 · ${
+    isActualToday ? "今日" : `周${selectedDay}`
+  }`;
   const isDailyFrequency = newFrequency === "每天 1 次";
   const isMultiFrequency = newFrequency === "每周 2–3 次";
   const isWeeklyFrequency =
@@ -429,13 +513,32 @@ export default function Home() {
           : `首次执行 ${newLongTermDate.slice(5).replace("-", "月")}日`;
 
   function toggleTask(id: string) {
-    const next = completed.includes(id)
-      ? completed.filter((taskId) => taskId !== id)
-      : [...completed, id];
+    const completionKey = getCompletionKey(selectedDayMeta.dateKey, id);
+    const next = completed.includes(completionKey)
+      ? completed.filter((key) => key !== completionKey)
+      : [...completed, completionKey];
     setCompleted(next);
     window.localStorage.setItem("household-archive-done", JSON.stringify(next));
-    setNotice(next.includes(id) ? "已完成一项，档案已更新" : "已撤销完成状态");
+    setNotice(
+      next.includes(completionKey)
+        ? "已完成一项，档案已更新"
+        : "已撤销完成状态",
+    );
     window.setTimeout(() => setNotice(""), 1800);
+  }
+
+  function changeWeek(offset: -1 | 1) {
+    setSelectedWeekStart((current) => shiftDateKey(current, offset * 7));
+  }
+
+  function goToCurrentWeek() {
+    setSelectedWeekStart(appCurrentWeekStart);
+    setSelectedDay("五");
+  }
+
+  function openToday() {
+    goToCurrentWeek();
+    setActiveTab("today");
   }
 
   function toggleCycleTask(id: string) {
@@ -452,12 +555,17 @@ export default function Home() {
   }
 
   function openTaskModal() {
+    const longTermBaseDate = parseDateKey(
+      selectedDayMeta.dateKey < appTodayKey
+        ? appTodayKey
+        : selectedDayMeta.dateKey,
+    );
     setNewFrequency("每周 1 次");
     setNewTaskDays([selectedDay]);
     setNewMonthDay(Number(selectedDayMeta.date));
-    setNewLongTermYear(2026);
-    setNewLongTermMonth(8);
-    setNewLongTermDay(Number(selectedDayMeta.date));
+    setNewLongTermYear(longTermBaseDate.getUTCFullYear());
+    setNewLongTermMonth(longTermBaseDate.getUTCMonth() + 1);
+    setNewLongTermDay(longTermBaseDate.getUTCDate());
     setIsAdding(true);
   }
 
@@ -550,14 +658,19 @@ export default function Home() {
       JSON.stringify(next),
     );
     setNewTitle("");
-    const scheduledDate = isMonthlyFrequency
-      ? String(newMonthDay).padStart(2, "0")
-      : isLongTermFrequency
-        ? newLongTermDate.slice(-2)
+    const targetWeekDays = isLongTermFrequency
+      ? buildWeekDays(getWeekStartKey(newLongTermDate))
+      : weekDays;
+    const matchedDay = isLongTermFrequency
+      ? targetWeekDays.find((item) => item.dateKey === newLongTermDate)?.day
+      : isMonthlyFrequency
+        ? targetWeekDays.find(
+            (item) => Number(item.date) === newMonthDay,
+          )?.day
         : undefined;
-    const matchedDay = scheduledDate
-      ? weekDays.find((item) => item.date === scheduledDate)?.day
-      : undefined;
+    if (isLongTermFrequency) {
+      setSelectedWeekStart(getWeekStartKey(newLongTermDate));
+    }
     setSelectedDay(matchedDay ?? newTaskDays[0] ?? selectedDay);
     setIsAdding(false);
     setActiveTab("today");
@@ -566,11 +679,54 @@ export default function Home() {
   }
 
   function resetArchive() {
-    setCompleted([]);
-    window.localStorage.setItem("household-archive-done", "[]");
+    const visibleDates = new Set(weekDays.map((item) => item.dateKey));
+    const next = completed.filter(
+      (key) => !visibleDates.has(key.split(":")[0]),
+    );
+    setCompleted(next);
+    window.localStorage.setItem(
+      "household-archive-done",
+      JSON.stringify(next),
+    );
     setNotice("本周打卡已重置");
     window.setTimeout(() => setNotice(""), 1800);
   }
+
+  const weekNavigator = (
+    <div className="week-navigator" aria-label="切换周次">
+      <button
+        aria-label="查看上一周"
+        disabled={selectedWeekStart === firstWeekStart}
+        onClick={() => changeWeek(-1)}
+        type="button"
+      >
+        <b>←</b>
+        <span>上一周</span>
+      </button>
+      <button
+        aria-label={isCurrentWeek ? "当前周" : "返回本周"}
+        className="week-range-summary"
+        disabled={isCurrentWeek}
+        onClick={goToCurrentWeek}
+        type="button"
+      >
+        <small>
+          2026 / W{String(annualWeekNumber).padStart(2, "0")}
+        </small>
+        <strong>{weekRangeLabel}</strong>
+        <em>{isCurrentWeek ? "本周" : "返回本周"}</em>
+      </button>
+      <button
+        aria-label="查看下一周"
+        disabled={selectedWeekStart === lastWeekStart}
+        onClick={() => changeWeek(1)}
+        type="button"
+      >
+        <b>→</b>
+        <span>下一周</span>
+      </button>
+    </div>
+  );
 
   return (
     <main className="blueprint-shell">
@@ -579,7 +735,10 @@ export default function Home() {
           <div className="technical-strip">
             <div>
               <span>档案编号</span>
-              <strong>H.A—2026—08</strong>
+              <strong>
+                H.A—{selectedDayMeta.year}—
+                {String(selectedDayMeta.month).padStart(2, "0")}
+              </strong>
             </div>
             <div>
               <span>年度周次</span>
@@ -590,7 +749,10 @@ export default function Home() {
             </div>
             <div>
               <span>更新日期</span>
-              <strong>08.{selectedDayMeta.date}.2026</strong>
+              <strong>
+                {String(selectedDayMeta.month).padStart(2, "0")}.
+                {selectedDayMeta.date}.{selectedDayMeta.year}
+              </strong>
             </div>
           </div>
 
@@ -627,7 +789,7 @@ export default function Home() {
                   <div className="section-kicker">
                     <span>01</span>
                     <p>
-                      {selectedDay === "五"
+                      {isActualToday
                         ? "TODAY'S OPERATION"
                         : "SELECTED DAY OPERATION"}
                     </p>
@@ -644,17 +806,21 @@ export default function Home() {
                 </div>
               </section>
 
+              {weekNavigator}
+
               <section className="week-ruler" aria-label="本周日期">
                 {weekDays.map((item) => {
                   const dayTasks = tasks.filter((task) =>
-                    isTaskScheduled(task, item.day),
+                    isTaskScheduled(task, item),
                   );
                   const dayDone = dayTasks.filter((task) =>
-                    completed.includes(task.id),
+                    completed.includes(
+                      getCompletionKey(item.dateKey, task.id),
+                    ),
                   ).length;
                   return (
                     <button
-                      aria-label={`切换到周${item.day}，8月${item.date}日`}
+                      aria-label={`切换到周${item.day}，${item.month}月${item.date}日`}
                       aria-pressed={selectedDay === item.day}
                       className={selectedDay === item.day ? "current" : ""}
                       key={item.day}
@@ -707,7 +873,9 @@ export default function Home() {
 
                 <div className="task-list">
                   {filteredTasks.map((task, index) => {
-                    const isDone = completed.includes(task.id);
+                    const isDone = completed.includes(
+                      getCompletionKey(selectedDayMeta.dateKey, task.id),
+                    );
                     return (
                       <label
                         className={`task-card ${isDone ? "is-done" : ""}`}
@@ -750,13 +918,16 @@ export default function Home() {
                   <p>MAINTENANCE CYCLE</p>
                 </div>
                 <h2 id="week-title">
-                  {planPeriod === "week" && "本周安排"}
+                  {planPeriod === "week" &&
+                    (isCurrentWeek
+                      ? "本周安排"
+                      : `第 ${annualWeekNumber} 周安排`)}
                   {planPeriod === "quarter" && "第三季度"}
                   {planPeriod === "half" && "下半年"}
                 </h2>
                 <p>
                   {planPeriod === "week" &&
-                    `8月${selectedDayMeta.date}日 / 周${selectedDay} / ${selectedDayTasks.length} 项维护任务`}
+                    `${selectedDayMeta.month}月${selectedDayMeta.date}日 / 周${selectedDay} / ${selectedDayTasks.length} 项维护任务`}
                   {planPeriod === "quarter" && "2026年第 3 季度 / 6 项深度维护"}
                   {planPeriod === "half" && "2026年下半年 / 6 项系统保养"}
                 </p>
@@ -764,7 +935,7 @@ export default function Home() {
 
               <div className="period-switch" aria-label="选择计划周期">
                 {[
-                  ["week", "本周", "7 DAYS"],
+                  ["week", "周计划", "7 DAYS"],
                   ["quarter", "季度", "3 MONTHS"],
                   ["half", "半年", "6 MONTHS"],
                 ].map(([value, label, english]) => (
@@ -782,13 +953,17 @@ export default function Home() {
 
               {planPeriod === "week" && (
                 <>
+                  {weekNavigator}
+
                   <div className="week-grid">
                     {weekDays.map((item) => {
                       const dayTasks = tasks.filter((task) =>
-                        isTaskScheduled(task, item.day),
+                        isTaskScheduled(task, item),
                       );
                       const dayDone = dayTasks.filter((task) =>
-                        completed.includes(task.id),
+                        completed.includes(
+                          getCompletionKey(item.dateKey, task.id),
+                        ),
                       ).length;
                       const dayProgress = dayTasks.length
                         ? (dayDone / dayTasks.length) * 100
@@ -826,7 +1001,8 @@ export default function Home() {
                     {selectedDayTasks.map((task) => (
                       <div className="schedule-row" key={task.id}>
                         <span>
-                          08.{selectedDayMeta.date} / 周{selectedDay}
+                          {String(selectedDayMeta.month).padStart(2, "0")}.
+                          {selectedDayMeta.date} / 周{selectedDay}
                         </span>
                         <strong>{task.title}</strong>
                         <span>{task.room}</span>
@@ -1013,7 +1189,7 @@ export default function Home() {
         <nav className="bottom-nav" aria-label="主导航">
           <button
             className={activeTab === "today" ? "active" : ""}
-            onClick={() => setActiveTab("today")}
+            onClick={openToday}
             type="button"
           >
             <span>01</span>
