@@ -16,6 +16,8 @@ type Task = {
   estimate: number;
   priority?: boolean;
   scheduledDays?: WeekDay[];
+  scheduledMonthDay?: number;
+  nextRunDate?: string;
 };
 
 const baseTasks: Task[] = [
@@ -70,10 +72,10 @@ const baseTasks: Task[] = [
     id: "fridge",
     title: "冰箱过期食品检查",
     room: "厨房",
-    frequency: "每月 1 次",
+    frequency: "每月 7 日",
     code: "KIT-021",
     estimate: 10,
-    scheduledDays: ["五"],
+    scheduledMonthDay: 7,
   },
   {
     id: "plants",
@@ -254,6 +256,16 @@ function readStoredTasks(): Task[] {
 }
 
 function isTaskScheduled(task: Task, day: WeekDay) {
+  const date = weekDays.find((item) => item.day === day)?.date;
+
+  if (task.scheduledMonthDay && date) {
+    return Number(date) === task.scheduledMonthDay;
+  }
+
+  if (task.nextRunDate && date) {
+    return task.nextRunDate === `2026-08-${date}`;
+  }
+
   return (task.scheduledDays ?? ["五"]).includes(day);
 }
 
@@ -270,6 +282,8 @@ export default function Home() {
   const [newRoom, setNewRoom] = useState<Exclude<Room, "全部">>("客厅");
   const [newFrequency, setNewFrequency] = useState("每周 1 次");
   const [newTaskDays, setNewTaskDays] = useState<WeekDay[]>(["五"]);
+  const [newMonthDay, setNewMonthDay] = useState(7);
+  const [newLongTermDate, setNewLongTermDate] = useState("2026-08-07");
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
@@ -328,30 +342,47 @@ export default function Home() {
       : `8月${selectedDayMeta.date}日 · 周${selectedDay}`;
   const isDailyFrequency = newFrequency === "每天 1 次";
   const isMultiFrequency = newFrequency === "每周 2–3 次";
+  const isWeeklyFrequency =
+    newFrequency === "每周 1 次" || isMultiFrequency;
+  const isMonthlyFrequency = newFrequency === "每月 1 次";
+  const isLongTermFrequency =
+    newFrequency === "每季度 1 次" || newFrequency === "每半年 1 次";
   const isNewScheduleValid = isDailyFrequency
     ? newTaskDays.length === allWeekDays.length
     : isMultiFrequency
       ? newTaskDays.length >= 2 && newTaskDays.length <= 3
-      : newTaskDays.length === 1;
+      : newFrequency === "每周 1 次"
+        ? newTaskDays.length === 1
+        : isMonthlyFrequency
+          ? newMonthDay >= 1 && newMonthDay <= 31
+          : Boolean(newLongTermDate);
   const scheduleLegend = isDailyFrequency
     ? "每天执行 / EVERY DAY"
     : isMultiFrequency
-      ? "选择 2–3 个执行日 / SCHEDULE"
+      ? "选择 2–3 个星期 / WEEKDAYS"
       : newFrequency === "每周 1 次"
-        ? "选择每周执行日 / SCHEDULE"
-        : "选择下次执行日 / NEXT RUN";
+        ? "选择星期 / WEEKDAY"
+        : isMonthlyFrequency
+          ? "选择每月执行日 / DAY OF MONTH"
+          : "首次执行日期 / FIRST RUN";
   const scheduleHint = isDailyFrequency
     ? "已自动选择整周，每天都会出现在任务清单中"
     : isMultiFrequency
       ? `已选择 ${newTaskDays.length} 天，请选择 2–3 天`
       : newFrequency === "每周 1 次"
         ? "任务将在所选星期重复"
-        : "所选日期将作为下一次执行日";
+        : isMonthlyFrequency
+          ? `任务将在每月 ${newMonthDay} 日出现`
+          : "从所选日期开始计算下一次周期";
   const submitScheduleLabel = isDailyFrequency
     ? "添加为每日任务"
     : isMultiFrequency
       ? `添加到 ${newTaskDays.map((day) => `周${day}`).join("、")}`
-      : `添加到周${newTaskDays[0] ?? selectedDay}`;
+      : newFrequency === "每周 1 次"
+        ? `添加到周${newTaskDays[0] ?? selectedDay}`
+        : isMonthlyFrequency
+          ? `设为每月 ${newMonthDay} 日`
+          : `首次执行 ${newLongTermDate.slice(5).replace("-", "月")}日`;
 
   function toggleTask(id: string) {
     const next = completed.includes(id)
@@ -379,6 +410,8 @@ export default function Home() {
   function openTaskModal() {
     setNewFrequency("每周 1 次");
     setNewTaskDays([selectedDay]);
+    setNewMonthDay(Number(selectedDayMeta.date));
+    setNewLongTermDate(`2026-08-${selectedDayMeta.date}`);
     setIsAdding(true);
   }
 
@@ -399,7 +432,9 @@ export default function Home() {
       return;
     }
 
-    setNewTaskDays((current) => [current[0] ?? selectedDay]);
+    if (frequency === "每周 1 次") {
+      setNewTaskDays((current) => [current[0] ?? selectedDay]);
+    }
   }
 
   function toggleNewTaskDay(day: WeekDay) {
@@ -426,10 +461,19 @@ export default function Home() {
       id: `custom-${Date.now()}`,
       title: newTitle.trim(),
       room: newRoom,
-      frequency: newFrequency,
+      frequency: isMonthlyFrequency
+        ? `每月 ${newMonthDay} 日`
+        : isLongTermFrequency
+          ? `${newFrequency} · 首次 ${newLongTermDate
+              .slice(5)
+              .replace("-", ".")}`
+          : newFrequency,
       code: `USR-${String(customTasks.length + 1).padStart(3, "0")}`,
       estimate: 15,
-      scheduledDays: newTaskDays,
+      scheduledDays:
+        isDailyFrequency || isWeeklyFrequency ? newTaskDays : undefined,
+      scheduledMonthDay: isMonthlyFrequency ? newMonthDay : undefined,
+      nextRunDate: isLongTermFrequency ? newLongTermDate : undefined,
     };
     const next = [...customTasks, task];
     setCustomTasks(next);
@@ -438,7 +482,15 @@ export default function Home() {
       JSON.stringify(next),
     );
     setNewTitle("");
-    setSelectedDay(newTaskDays[0] ?? selectedDay);
+    const scheduledDate = isMonthlyFrequency
+      ? String(newMonthDay).padStart(2, "0")
+      : isLongTermFrequency
+        ? newLongTermDate.slice(-2)
+        : undefined;
+    const matchedDay = scheduledDate
+      ? weekDays.find((item) => item.date === scheduledDate)?.day
+      : undefined;
+    setSelectedDay(matchedDay ?? newTaskDays[0] ?? selectedDay);
     setIsAdding(false);
     setActiveTab("today");
     setNotice("新任务已归档");
@@ -965,24 +1017,97 @@ export default function Home() {
                 </label>
 
                 <fieldset className="mobile-choice-field">
-                  <legend>{scheduleLegend}</legend>
-                  <div className="task-day-picker">
-                    {weekDays.map((item) => (
+                  <legend>频次 / FREQUENCY</legend>
+                  <div className="choice-grid frequency-choice-grid">
+                    {[
+                      "每天 1 次",
+                      "每周 1 次",
+                      "每周 2–3 次",
+                      "每月 1 次",
+                      "每季度 1 次",
+                      "每半年 1 次",
+                    ].map((frequency) => (
                       <button
-                        aria-pressed={newTaskDays.includes(item.day)}
+                        aria-pressed={newFrequency === frequency}
                         className={
-                          newTaskDays.includes(item.day) ? "active" : ""
+                          newFrequency === frequency ? "active" : ""
                         }
-                        disabled={isDailyFrequency}
-                        key={item.day}
-                        onClick={() => toggleNewTaskDay(item.day)}
+                        key={frequency}
+                        onClick={() => chooseFrequency(frequency)}
                         type="button"
                       >
-                        <span>周{item.day}</span>
-                        <strong>{item.date}</strong>
+                        {frequency}
                       </button>
                     ))}
                   </div>
+                </fieldset>
+
+                <fieldset className="mobile-choice-field">
+                  <legend>{scheduleLegend}</legend>
+
+                  {isDailyFrequency && (
+                    <div className="daily-schedule-summary">
+                      <strong>周一 — 周日</strong>
+                      <span>每天自动执行</span>
+                    </div>
+                  )}
+
+                  {isWeeklyFrequency && (
+                    <div className="task-day-picker weekday-only">
+                      {weekDays.map((item) => (
+                        <button
+                          aria-pressed={newTaskDays.includes(item.day)}
+                          className={
+                            newTaskDays.includes(item.day) ? "active" : ""
+                          }
+                          key={item.day}
+                          onClick={() => toggleNewTaskDay(item.day)}
+                          type="button"
+                        >
+                          <strong>周{item.day}</strong>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {isMonthlyFrequency && (
+                    <div
+                      aria-label="每月执行日"
+                      className="month-day-picker"
+                      role="group"
+                    >
+                      {Array.from({ length: 31 }, (_, index) => index + 1).map(
+                        (day) => (
+                          <button
+                            aria-label={`每月${day}日`}
+                            aria-pressed={newMonthDay === day}
+                            className={newMonthDay === day ? "active" : ""}
+                            key={day}
+                            onClick={() => setNewMonthDay(day)}
+                            type="button"
+                          >
+                            {day}
+                          </button>
+                        ),
+                      )}
+                    </div>
+                  )}
+
+                  {isLongTermFrequency && (
+                    <label className="exact-date-field">
+                      <span>选择完整日期</span>
+                      <input
+                        aria-label="首次执行日期"
+                        min="2026-07-27"
+                        onChange={(event) =>
+                          setNewLongTermDate(event.target.value)
+                        }
+                        type="date"
+                        value={newLongTermDate}
+                      />
+                    </label>
+                  )}
+
                   <p
                     className={`choice-hint ${
                       isNewScheduleValid ? "" : "warning"
@@ -1006,32 +1131,6 @@ export default function Home() {
                         type="button"
                       >
                         {room}
-                      </button>
-                    ))}
-                  </div>
-                </fieldset>
-
-                <fieldset className="mobile-choice-field">
-                  <legend>频次 / FREQUENCY</legend>
-                  <div className="choice-grid frequency-choice-grid">
-                    {[
-                      "每天 1 次",
-                      "每周 1 次",
-                      "每周 2–3 次",
-                      "每月 1 次",
-                      "每季度 1 次",
-                      "每半年 1 次",
-                    ].map((frequency) => (
-                      <button
-                        aria-pressed={newFrequency === frequency}
-                        className={
-                          newFrequency === frequency ? "active" : ""
-                        }
-                        key={frequency}
-                        onClick={() => chooseFrequency(frequency)}
-                        type="button"
-                      >
-                        {frequency}
                       </button>
                     ))}
                   </div>

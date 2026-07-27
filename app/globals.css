@@ -1259,9 +1259,100 @@ button {
   color: white;
 }
 
+.task-day-picker.weekday-only button {
+  min-height: 52px;
+}
+
+.task-day-picker.weekday-only button strong {
+  font-size: 11px;
+}
+
 .task-day-picker button:disabled {
   cursor: default;
   opacity: 1;
+}
+
+.daily-schedule-summary {
+  display: flex;
+  min-height: 58px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  border: 1px solid var(--blue);
+  background: var(--blue);
+  color: white;
+}
+
+.daily-schedule-summary strong {
+  font: 700 13px/1 "Courier New", monospace;
+}
+
+.daily-schedule-summary span {
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.month-day-picker {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  border-top: 1px solid var(--blue);
+  border-left: 1px solid var(--blue);
+}
+
+.month-day-picker button {
+  min-width: 0;
+  min-height: 42px;
+  padding: 0;
+  border: 0;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.58);
+  color: var(--blue);
+  font: 700 11px/1 "Courier New", monospace;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.month-day-picker button:nth-child(7n) {
+  border-right-color: var(--blue);
+}
+
+.month-day-picker button:nth-last-child(-n + 3) {
+  border-bottom-color: var(--blue);
+}
+
+.month-day-picker button.active {
+  background: var(--blue);
+  color: white;
+}
+
+.exact-date-field {
+  display: flex;
+  min-height: 58px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 8px 12px;
+  border: 1px solid var(--blue);
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.exact-date-field span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.exact-date-field input {
+  min-width: 158px;
+  min-height: 42px;
+  padding: 0 8px;
+  border: 1px solid var(--blue);
+  border-radius: 0;
+  outline: 0;
+  background: var(--paper);
+  color: var(--blue);
+  font: 700 12px/1 "Courier New", monospace;
 }
 
 .choice-hint {
