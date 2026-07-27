@@ -157,6 +157,17 @@ function isPastLongTermDate(year: number, month: number, day: number) {
   return year * 10000 + month * 100 + day < 20260727;
 }
 
+function getIsoWeekNumber(year: number, month: number, day: number) {
+  const date = new Date(Date.UTC(year, month - 1, day));
+  const weekday = date.getUTCDay() || 7;
+  date.setUTCDate(date.getUTCDate() + 4 - weekday);
+  const firstDayOfWeekYear = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+
+  return Math.ceil(
+    ((date.getTime() - firstDayOfWeekYear.getTime()) / 86400000 + 1) / 7,
+  );
+}
+
 const cyclePlans = {
   quarter: [
     {
@@ -344,6 +355,11 @@ export default function Home() {
     .reduce((sum, task) => sum + task.estimate, 0);
   const selectedDayMeta =
     weekDays.find((item) => item.day === selectedDay) ?? weekDays[4];
+  const annualWeekNumber = getIsoWeekNumber(
+    2026,
+    8,
+    Number(selectedDayMeta.date),
+  );
   const pageTitle =
     activeTab === "today"
       ? selectedDay === "五"
@@ -566,8 +582,11 @@ export default function Home() {
               <strong>H.A—2026—08</strong>
             </div>
             <div>
-              <span>当前周期</span>
-              <strong>第 01 周 / 周{selectedDay}</strong>
+              <span>年度周次</span>
+              <strong>
+                第 {String(annualWeekNumber).padStart(2, "0")} 周 / 周
+                {selectedDay}
+              </strong>
             </div>
             <div>
               <span>更新日期</span>
