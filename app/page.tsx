@@ -1,6 +1,13 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import {
+  CSSProperties,
+  FormEvent,
+  KeyboardEvent,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 type Room = "全部" | "客厅" | "厨房" | "卧室" | "卫生间" | "阳台";
 type Tab = "today" | "week" | "archive";
@@ -527,6 +534,31 @@ export default function Home() {
     window.setTimeout(() => setNotice(""), 1800);
   }
 
+  function cycleWeeklyTask(id: string, occurrences: CalendarDay[]) {
+    const occurrenceKeys = occurrences.map((item) =>
+      getCompletionKey(item.dateKey, id),
+    );
+    const completedCount = occurrenceKeys.filter((key) =>
+      completed.includes(key),
+    ).length;
+    const isComplete = completedCount === occurrenceKeys.length;
+    const nextKey = occurrenceKeys.find((key) => !completed.includes(key));
+    const next = isComplete
+      ? completed.filter((key) => !occurrenceKeys.includes(key))
+      : nextKey
+        ? [...completed, nextKey]
+        : completed;
+
+    setCompleted(next);
+    window.localStorage.setItem("household-archive-done", JSON.stringify(next));
+    setNotice(
+      isComplete
+        ? "本周完成次数已重置"
+        : `本周进度 ${completedCount + 1}/${occurrenceKeys.length}`,
+    );
+    window.setTimeout(() => setNotice(""), 1800);
+  }
+
   function toggleTask(id: string) {
     toggleTaskForDate(id, selectedDayMeta.dateKey);
   }
@@ -897,71 +929,97 @@ export default function Home() {
                       weeklyOccurrences.length > 1
                         ? completedOccurrences === weeklyOccurrences.length
                         : isDone;
+                    const hasMultipleOccurrences =
+                      weeklyOccurrences.length > 1;
+                    const progressPercent = hasMultipleOccurrences
+                      ? Math.round(
+                          (completedOccurrences /
+                            weeklyOccurrences.length) *
+                            100,
+                        )
+                      : 0;
+                    const handleOccurrenceKeyDown = (
+                      event: KeyboardEvent<HTMLElement>,
+                    ) => {
+                      if (
+                        hasMultipleOccurrences &&
+                        (event.key === "Enter" || event.key === " ")
+                      ) {
+                        event.preventDefault();
+                        cycleWeeklyTask(task.id, weeklyOccurrences);
+                      }
+                    };
                     return (
                       <article
                         className={`task-card ${
                           isDone ? "current-done" : ""
                         } ${isFullyDone ? "is-done" : ""} ${
-                          weeklyOccurrences.length > 1
-                            ? "has-occurrences"
-                            : ""
+                          hasMultipleOccurrences ? "has-occurrences" : ""
                         }`}
+                        onClick={
+                          hasMultipleOccurrences
+                            ? () =>
+                                cycleWeeklyTask(task.id, weeklyOccurrences)
+                            : undefined
+                        }
+                        onKeyDown={handleOccurrenceKeyDown}
+                        role={hasMultipleOccurrences ? "button" : undefined}
+                        tabIndex={hasMultipleOccurrences ? 0 : undefined}
+                        aria-label={
+                          hasMultipleOccurrences
+                            ? `${task.title}，本周已完成 ${completedOccurrences}/${weeklyOccurrences.length} 次，轻点继续打卡`
+                            : undefined
+                        }
+                        style={
+                          hasMultipleOccurrences
+                            ? ({
+                                "--task-progress": `${progressPercent}%`,
+                              } as CSSProperties)
+                            : undefined
+                        }
                         key={task.id}
                       >
                         <span className="task-index">
                           {String(index + 1).padStart(2, "0")}
                         </span>
-                        <label
-                          aria-label={`${selectedDayMeta.month}月${selectedDayMeta.date}日 ${task.title}`}
-                          className="task-primary-check"
-                        >
-                          <input
-                            checked={isDone}
-                            onChange={() => toggleTask(task.id)}
-                            type="checkbox"
-                          />
-                          <span className="checkmark" aria-hidden="true">
-                            {isDone ? "✓" : ""}
+                        {hasMultipleOccurrences ? (
+                          <span
+                            className="task-progress-count"
+                            aria-hidden="true"
+                          >
+                            <strong>{completedOccurrences}</strong>
+                            <small>/{weeklyOccurrences.length}</small>
                           </span>
-                        </label>
+                        ) : (
+                          <label
+                            aria-label={`${selectedDayMeta.month}月${selectedDayMeta.date}日 ${task.title}`}
+                            className="task-primary-check"
+                          >
+                            <input
+                              checked={isDone}
+                              onChange={() => toggleTask(task.id)}
+                              type="checkbox"
+                            />
+                            <span className="checkmark" aria-hidden="true">
+                              {isDone ? "✓" : ""}
+                            </span>
+                          </label>
+                        )}
                         <span className="task-copy">
                           <strong>{task.title}</strong>
                           <span>
                             {task.room} / {task.frequency}
                           </span>
-                          {weeklyOccurrences.length > 1 && (
-                            <span className="task-occurrences">
+                          {hasMultipleOccurrences && (
+                            <span className="task-progress-note">
                               <span>
-                                本周 {completedOccurrences}/
-                                {weeklyOccurrences.length} 次
+                                {weeklyOccurrences
+                                  .map((item) => `周${item.day}`)
+                                  .join(" · ")}
                               </span>
-                              <span className="occurrence-buttons">
-                                {weeklyOccurrences.map((item) => {
-                                  const occurrenceDone = completed.includes(
-                                    getCompletionKey(item.dateKey, task.id),
-                                  );
-                                  return (
-                                    <button
-                                      aria-label={`周${item.day}${occurrenceDone ? "已完成" : "未完成"}`}
-                                      aria-pressed={occurrenceDone}
-                                      className={
-                                        occurrenceDone ? "complete" : ""
-                                      }
-                                      key={item.dateKey}
-                                      onClick={() =>
-                                        toggleTaskForDate(
-                                          task.id,
-                                          item.dateKey,
-                                        )
-                                      }
-                                      type="button"
-                                    >
-                                      周{item.day}
-                                      <i>{occurrenceDone ? "✓" : ""}</i>
-                                    </button>
-                                  );
-                                })}
-                              </span>
+                              <b>
+                                {isFullyDone ? "本周已完成" : "轻点整行打卡"}
+                              </b>
                             </span>
                           )}
                         </span>

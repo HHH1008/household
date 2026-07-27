@@ -526,6 +526,38 @@ button {
   background: #eef0f5;
 }
 
+.task-card.has-occurrences {
+  isolation: isolate;
+  min-height: 88px;
+  overflow: hidden;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.task-card.has-occurrences::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0 auto 0 0;
+  width: var(--task-progress, 0%);
+  border-right: 1px solid rgba(18, 63, 200, 0.42);
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 8px,
+      rgba(18, 63, 200, 0.035) 8px,
+      rgba(18, 63, 200, 0.035) 9px
+    ),
+    rgba(18, 63, 200, 0.14);
+  content: "";
+  pointer-events: none;
+  transition: width 240ms ease;
+}
+
+.task-card.has-occurrences:active {
+  background: #e4e8f2;
+}
+
 .task-index {
   align-self: stretch;
   padding-top: 4px;
@@ -561,6 +593,35 @@ button {
   font-size: 14px;
 }
 
+.task-progress-count {
+  display: flex;
+  width: 34px;
+  height: 34px;
+  margin-left: -5px;
+  align-items: baseline;
+  justify-content: center;
+  border: 1px solid var(--blue);
+  background: rgba(244, 244, 241, 0.76);
+  color: var(--blue);
+  font-family: "Courier New", monospace;
+  transition:
+    color 160ms ease,
+    background 160ms ease;
+}
+
+.task-progress-count strong {
+  align-self: center;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.task-progress-count small {
+  align-self: center;
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 1;
+}
+
 .task-copy {
   display: flex;
   min-width: 0;
@@ -581,55 +642,22 @@ button {
   font-size: 9px;
 }
 
-.task-occurrences {
+.task-progress-note {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-top: 9px !important;
+  margin-top: 8px !important;
   color: var(--blue) !important;
-}
-
-.task-occurrences > span:first-child {
-  flex: 0 0 auto;
   font: 700 8px/1 "Courier New", monospace;
 }
 
-.occurrence-buttons {
-  display: flex;
-  min-width: 0;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 4px;
-}
-
-.occurrence-buttons button {
-  display: flex;
-  min-height: 32px;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 5px 4px 7px;
-  border: 1px solid var(--blue);
-  background: rgba(255, 255, 255, 0.72);
-  color: var(--blue);
+.task-progress-note b {
+  flex: 0 0 auto;
+  padding-bottom: 2px;
+  border-bottom: 1px solid currentColor;
   font-size: 8px;
   font-weight: 800;
-  cursor: pointer;
-  touch-action: manipulation;
-}
-
-.occurrence-buttons i {
-  display: grid;
-  width: 17px;
-  height: 17px;
-  place-items: center;
-  border: 1px solid currentColor;
-  font: normal 700 10px/1 "Courier New", monospace;
-}
-
-.occurrence-buttons button.complete {
-  background: var(--blue);
-  color: white;
 }
 
 .task-meta {
@@ -672,6 +700,33 @@ button {
 .task-card.is-done .task-copy strong {
   color: #7c8496;
   text-decoration: line-through;
+}
+
+.task-card.has-occurrences.is-done {
+  background: rgba(244, 244, 241, 0.72);
+}
+
+.task-card.has-occurrences.is-done::before {
+  border-right: 0;
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 8px,
+      rgba(255, 255, 255, 0.08) 8px,
+      rgba(255, 255, 255, 0.08) 9px
+    ),
+    rgba(18, 63, 200, 0.24);
+}
+
+.task-card.has-occurrences.is-done .task-progress-count {
+  background: var(--blue);
+  color: white;
+}
+
+.task-card.has-occurrences.is-done .task-copy strong {
+  color: var(--ink);
+  text-decoration: none;
 }
 
 .week-view,
