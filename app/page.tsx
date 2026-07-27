@@ -134,6 +134,13 @@ const weekDays = [
   { day: "日" as WeekDay, date: "09" },
 ];
 
+const allWeekDays = weekDays.map((item) => item.day);
+
+function getSuggestedMultiDays(anchor: WeekDay) {
+  const anchorIndex = allWeekDays.indexOf(anchor);
+  return [anchor, allWeekDays[(anchorIndex + 2) % allWeekDays.length]];
+}
+
 const cyclePlans = {
   quarter: [
     {
@@ -262,7 +269,7 @@ export default function Home() {
   const [newTitle, setNewTitle] = useState("");
   const [newRoom, setNewRoom] = useState<Exclude<Room, "全部">>("客厅");
   const [newFrequency, setNewFrequency] = useState("每周 1 次");
-  const [newTaskDay, setNewTaskDay] = useState<WeekDay>("五");
+  const [newTaskDays, setNewTaskDays] = useState<WeekDay[]>(["五"]);
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
@@ -319,6 +326,32 @@ export default function Home() {
     selectedDay === "五"
       ? `8月${selectedDayMeta.date}日 · 今日`
       : `8月${selectedDayMeta.date}日 · 周${selectedDay}`;
+  const isDailyFrequency = newFrequency === "每天 1 次";
+  const isMultiFrequency = newFrequency === "每周 2–3 次";
+  const isNewScheduleValid = isDailyFrequency
+    ? newTaskDays.length === allWeekDays.length
+    : isMultiFrequency
+      ? newTaskDays.length >= 2 && newTaskDays.length <= 3
+      : newTaskDays.length === 1;
+  const scheduleLegend = isDailyFrequency
+    ? "每天执行 / EVERY DAY"
+    : isMultiFrequency
+      ? "选择 2–3 个执行日 / SCHEDULE"
+      : newFrequency === "每周 1 次"
+        ? "选择每周执行日 / SCHEDULE"
+        : "选择下次执行日 / NEXT RUN";
+  const scheduleHint = isDailyFrequency
+    ? "已自动选择整周，每天都会出现在任务清单中"
+    : isMultiFrequency
+      ? `已选择 ${newTaskDays.length} 天，请选择 2–3 天`
+      : newFrequency === "每周 1 次"
+        ? "任务将在所选星期重复"
+        : "所选日期将作为下一次执行日";
+  const submitScheduleLabel = isDailyFrequency
+    ? "添加为每日任务"
+    : isMultiFrequency
+      ? `添加到 ${newTaskDays.map((day) => `周${day}`).join("、")}`
+      : `添加到周${newTaskDays[0] ?? selectedDay}`;
 
   function toggleTask(id: string) {
     const next = completed.includes(id)
@@ -344,13 +377,50 @@ export default function Home() {
   }
 
   function openTaskModal() {
-    setNewTaskDay(selectedDay);
+    setNewFrequency("每周 1 次");
+    setNewTaskDays([selectedDay]);
     setIsAdding(true);
+  }
+
+  function chooseFrequency(frequency: string) {
+    setNewFrequency(frequency);
+
+    if (frequency === "每天 1 次") {
+      setNewTaskDays(allWeekDays);
+      return;
+    }
+
+    if (frequency === "每周 2–3 次") {
+      setNewTaskDays((current) =>
+        current.length >= 2 && current.length <= 3
+          ? current
+          : getSuggestedMultiDays(current[0] ?? selectedDay),
+      );
+      return;
+    }
+
+    setNewTaskDays((current) => [current[0] ?? selectedDay]);
+  }
+
+  function toggleNewTaskDay(day: WeekDay) {
+    if (isDailyFrequency) return;
+
+    if (!isMultiFrequency) {
+      setNewTaskDays([day]);
+      return;
+    }
+
+    setNewTaskDays((current) => {
+      if (current.includes(day)) {
+        return current.filter((item) => item !== day);
+      }
+      return current.length < 3 ? [...current, day] : current;
+    });
   }
 
   function submitTask(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!newTitle.trim()) return;
+    if (!newTitle.trim() || !isNewScheduleValid) return;
 
     const task: Task = {
       id: `custom-${Date.now()}`,
@@ -359,7 +429,7 @@ export default function Home() {
       frequency: newFrequency,
       code: `USR-${String(customTasks.length + 1).padStart(3, "0")}`,
       estimate: 15,
-      scheduledDays: [newTaskDay],
+      scheduledDays: newTaskDays,
     };
     const next = [...customTasks, task];
     setCustomTasks(next);
@@ -368,7 +438,7 @@ export default function Home() {
       JSON.stringify(next),
     );
     setNewTitle("");
-    setSelectedDay(newTaskDay);
+    setSelectedDay(newTaskDays[0] ?? selectedDay);
     setIsAdding(false);
     setActiveTab("today");
     setNotice("新任务已归档");
@@ -895,14 +965,17 @@ export default function Home() {
                 </label>
 
                 <fieldset className="mobile-choice-field">
-                  <legend>安排日期 / SCHEDULE</legend>
+                  <legend>{scheduleLegend}</legend>
                   <div className="task-day-picker">
                     {weekDays.map((item) => (
                       <button
-                        aria-pressed={newTaskDay === item.day}
-                        className={newTaskDay === item.day ? "active" : ""}
+                        aria-pressed={newTaskDays.includes(item.day)}
+                        className={
+                          newTaskDays.includes(item.day) ? "active" : ""
+                        }
+                        disabled={isDailyFrequency}
                         key={item.day}
-                        onClick={() => setNewTaskDay(item.day)}
+                        onClick={() => toggleNewTaskDay(item.day)}
                         type="button"
                       >
                         <span>周{item.day}</span>
@@ -910,6 +983,13 @@ export default function Home() {
                       </button>
                     ))}
                   </div>
+                  <p
+                    className={`choice-hint ${
+                      isNewScheduleValid ? "" : "warning"
+                    }`}
+                  >
+                    {scheduleHint}
+                  </p>
                 </fieldset>
 
                 <fieldset className="mobile-choice-field">
@@ -948,7 +1028,7 @@ export default function Home() {
                           newFrequency === frequency ? "active" : ""
                         }
                         key={frequency}
-                        onClick={() => setNewFrequency(frequency)}
+                        onClick={() => chooseFrequency(frequency)}
                         type="button"
                       >
                         {frequency}
@@ -961,10 +1041,10 @@ export default function Home() {
               <div className="modal-action">
                 <button
                   className="submit-task"
-                  disabled={!newTitle.trim()}
+                  disabled={!newTitle.trim() || !isNewScheduleValid}
                   type="submit"
                 >
-                  添加到周{newTaskDay}
+                  {submitScheduleLabel}
                   <span>保存任务 ↗</span>
                 </button>
               </div>
