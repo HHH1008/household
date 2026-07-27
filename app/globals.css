@@ -295,15 +295,17 @@ button {
 .week-ruler > button {
   position: relative;
   display: flex;
-  min-height: 60px;
+  min-height: 88px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 4px;
   padding: 0;
   border: 0;
   border-right: 1px solid var(--line);
   background: transparent;
   cursor: pointer;
+  touch-action: manipulation;
 }
 
 .week-ruler > button:last-child {
@@ -312,24 +314,24 @@ button {
 
 .week-ruler span {
   color: var(--muted);
-  font-size: 9px;
+  font-size: 10px;
+  font-weight: 700;
 }
 
 .week-ruler strong {
-  margin-top: 2px;
-  font: 700 14px/1.2 "Courier New", monospace;
+  font: 700 21px/1 "Courier New", monospace;
 }
 
-.week-ruler i {
-  width: 4px;
-  height: 4px;
-  margin-top: 5px;
-  border: 1px solid var(--blue);
-  border-radius: 50%;
+.week-ruler em {
+  min-width: 25px;
+  padding: 3px 4px;
+  border: 1px solid var(--line);
+  color: var(--blue);
+  font: normal 700 8px/1 "Courier New", monospace;
 }
 
-.week-ruler i.complete {
-  background: var(--blue);
+.week-ruler em.complete {
+  background: rgba(18, 63, 200, 0.12);
 }
 
 .week-ruler .current {
@@ -341,8 +343,10 @@ button {
   color: white;
 }
 
-.week-ruler .current i {
-  border-color: white;
+.week-ruler .current em {
+  border-color: rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
 }
 
 .task-section {

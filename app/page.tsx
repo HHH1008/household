@@ -314,6 +314,10 @@ export default function Home() {
       : activeTab === "week"
         ? "周期计划"
         : "档案总览";
+  const selectedDateHeading =
+    selectedDay === "五"
+      ? `8月${selectedDayMeta.date}日 · 今日`
+      : `8月${selectedDayMeta.date}日 · 周${selectedDay}`;
 
   function toggleTask(id: string) {
     const next = completed.includes(id)
@@ -428,7 +432,7 @@ export default function Home() {
                         : "SELECTED DAY OPERATION"}
                     </p>
                   </div>
-                  <h2 id="today-title">{pageTitle}</h2>
+                  <h2 id="today-title">{selectedDateHeading}</h2>
                   <p>
                     预计剩余 {Math.max(totalMinutes - finishedMinutes, 0)} 分钟
                     · 优先处理{" "}
@@ -459,13 +463,15 @@ export default function Home() {
                     >
                       <span>周{item.day}</span>
                       <strong>{item.date}</strong>
-                      <i
+                      <em
                         className={
                           dayTasks.length > 0 && dayDone === dayTasks.length
                             ? "complete"
                             : ""
                         }
-                      />
+                      >
+                        {dayDone}/{dayTasks.length}
+                      </em>
                     </button>
                   );
                 })}
@@ -543,7 +549,11 @@ export default function Home() {
                   <span>02</span>
                   <p>MAINTENANCE CYCLE</p>
                 </div>
-                <h2 id="week-title">周期计划</h2>
+                <h2 id="week-title">
+                  {planPeriod === "week" && "本周安排"}
+                  {planPeriod === "quarter" && "第三季度"}
+                  {planPeriod === "half" && "下半年"}
+                </h2>
                 <p>
                   {planPeriod === "week" &&
                     `8月${selectedDayMeta.date}日 / 周${selectedDay} / ${selectedDayTasks.length} 项维护任务`}
@@ -744,7 +754,7 @@ export default function Home() {
                   <span>03</span>
                   <p>ARCHIVE INDEX</p>
                 </div>
-                <h2 id="archive-title">档案总览</h2>
+                <h2 id="archive-title">2026年8月</h2>
                 <p>2026年8月 / 家庭维护记录</p>
               </div>
 
