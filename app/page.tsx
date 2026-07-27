@@ -46,7 +46,7 @@ const baseTasks: Task[] = [
     frequency: "每周 1–2 次",
     code: "LIV-004",
     estimate: 20,
-    scheduledDays: ["一", "三", "六"],
+    scheduledDays: ["三", "六"],
   },
   {
     id: "bed",
@@ -74,7 +74,7 @@ const baseTasks: Task[] = [
     frequency: "每周 1 次",
     code: "LIV-011",
     estimate: 8,
-    scheduledDays: ["三", "日"],
+    scheduledDays: ["三"],
   },
   {
     id: "fridge",
@@ -92,7 +92,7 @@ const baseTasks: Task[] = [
     frequency: "每周 1 次",
     code: "BAL-005",
     estimate: 12,
-    scheduledDays: ["二", "六"],
+    scheduledDays: ["二"],
   },
   {
     id: "basin",
@@ -512,8 +512,8 @@ export default function Home() {
           ? `设为每月 ${newMonthDay} 日`
           : `首次执行 ${newLongTermDate.slice(5).replace("-", "月")}日`;
 
-  function toggleTask(id: string) {
-    const completionKey = getCompletionKey(selectedDayMeta.dateKey, id);
+  function toggleTaskForDate(id: string, dateKey: string) {
+    const completionKey = getCompletionKey(dateKey, id);
     const next = completed.includes(completionKey)
       ? completed.filter((key) => key !== completionKey)
       : [...completed, completionKey];
@@ -525,6 +525,10 @@ export default function Home() {
         : "已撤销完成状态",
     );
     window.setTimeout(() => setNotice(""), 1800);
+  }
+
+  function toggleTask(id: string) {
+    toggleTaskForDate(id, selectedDayMeta.dateKey);
   }
 
   function changeWeek(offset: -1 | 1) {
@@ -876,33 +880,96 @@ export default function Home() {
                     const isDone = completed.includes(
                       getCompletionKey(selectedDayMeta.dateKey, task.id),
                     );
+                    const weeklyOccurrences =
+                      task.frequency.includes("每周") &&
+                      (task.scheduledDays?.length ?? 0) > 1
+                        ? weekDays.filter((item) =>
+                            task.scheduledDays?.includes(item.day),
+                          )
+                        : [];
+                    const completedOccurrences = weeklyOccurrences.filter(
+                      (item) =>
+                        completed.includes(
+                          getCompletionKey(item.dateKey, task.id),
+                        ),
+                    ).length;
+                    const isFullyDone =
+                      weeklyOccurrences.length > 1
+                        ? completedOccurrences === weeklyOccurrences.length
+                        : isDone;
                     return (
-                      <label
-                        className={`task-card ${isDone ? "is-done" : ""}`}
+                      <article
+                        className={`task-card ${
+                          isDone ? "current-done" : ""
+                        } ${isFullyDone ? "is-done" : ""} ${
+                          weeklyOccurrences.length > 1
+                            ? "has-occurrences"
+                            : ""
+                        }`}
                         key={task.id}
                       >
                         <span className="task-index">
                           {String(index + 1).padStart(2, "0")}
                         </span>
-                        <input
-                          checked={isDone}
-                          onChange={() => toggleTask(task.id)}
-                          type="checkbox"
-                        />
-                        <span className="checkmark" aria-hidden="true">
-                          {isDone ? "✓" : ""}
-                        </span>
+                        <label
+                          aria-label={`${selectedDayMeta.month}月${selectedDayMeta.date}日 ${task.title}`}
+                          className="task-primary-check"
+                        >
+                          <input
+                            checked={isDone}
+                            onChange={() => toggleTask(task.id)}
+                            type="checkbox"
+                          />
+                          <span className="checkmark" aria-hidden="true">
+                            {isDone ? "✓" : ""}
+                          </span>
+                        </label>
                         <span className="task-copy">
                           <strong>{task.title}</strong>
                           <span>
                             {task.room} / {task.frequency}
                           </span>
+                          {weeklyOccurrences.length > 1 && (
+                            <span className="task-occurrences">
+                              <span>
+                                本周 {completedOccurrences}/
+                                {weeklyOccurrences.length} 次
+                              </span>
+                              <span className="occurrence-buttons">
+                                {weeklyOccurrences.map((item) => {
+                                  const occurrenceDone = completed.includes(
+                                    getCompletionKey(item.dateKey, task.id),
+                                  );
+                                  return (
+                                    <button
+                                      aria-label={`周${item.day}${occurrenceDone ? "已完成" : "未完成"}`}
+                                      aria-pressed={occurrenceDone}
+                                      className={
+                                        occurrenceDone ? "complete" : ""
+                                      }
+                                      key={item.dateKey}
+                                      onClick={() =>
+                                        toggleTaskForDate(
+                                          task.id,
+                                          item.dateKey,
+                                        )
+                                      }
+                                      type="button"
+                                    >
+                                      周{item.day}
+                                      <i>{occurrenceDone ? "✓" : ""}</i>
+                                    </button>
+                                  );
+                                })}
+                              </span>
+                            </span>
+                          )}
                         </span>
                         <span className="task-meta">
                           <small>{task.code}</small>
                           <strong>{task.estimate}&apos;</strong>
                         </span>
-                      </label>
+                      </article>
                     );
                   })}
                 </div>

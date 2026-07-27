@@ -519,7 +519,6 @@ button {
   padding: 10px 15px 10px 10px;
   border-bottom: 1px solid var(--line);
   background: rgba(244, 244, 241, 0.72);
-  cursor: pointer;
   transition: background 160ms ease;
 }
 
@@ -540,6 +539,16 @@ button {
   width: 1px;
   height: 1px;
   opacity: 0;
+}
+
+.task-primary-check {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  margin-left: -9px;
+  place-items: center;
+  cursor: pointer;
+  touch-action: manipulation;
 }
 
 .checkmark {
@@ -572,6 +581,57 @@ button {
   font-size: 9px;
 }
 
+.task-occurrences {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 9px !important;
+  color: var(--blue) !important;
+}
+
+.task-occurrences > span:first-child {
+  flex: 0 0 auto;
+  font: 700 8px/1 "Courier New", monospace;
+}
+
+.occurrence-buttons {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.occurrence-buttons button {
+  display: flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 5px 4px 7px;
+  border: 1px solid var(--blue);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--blue);
+  font-size: 8px;
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.occurrence-buttons i {
+  display: grid;
+  width: 17px;
+  height: 17px;
+  place-items: center;
+  border: 1px solid currentColor;
+  font: normal 700 10px/1 "Courier New", monospace;
+}
+
+.occurrence-buttons button.complete {
+  background: var(--blue);
+  color: white;
+}
+
 .task-meta {
   display: flex;
   align-items: flex-end;
@@ -602,6 +662,10 @@ button {
 }
 
 .task-card.is-done .checkmark {
+  background: var(--blue);
+}
+
+.task-card.current-done .checkmark {
   background: var(--blue);
 }
 
