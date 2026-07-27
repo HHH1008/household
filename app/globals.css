@@ -1326,33 +1326,94 @@ button {
   color: white;
 }
 
-.exact-date-field {
+.archive-date-picker {
+  border: 1px solid var(--blue);
+  background: rgba(255, 255, 255, 0.48);
+}
+
+.archive-date-display {
   display: flex;
-  min-height: 58px;
+  min-height: 62px;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
-  padding: 8px 12px;
-  border: 1px solid var(--blue);
-  background: rgba(255, 255, 255, 0.58);
+  padding: 0 12px;
+  border-bottom: 1px solid var(--blue);
+  background: var(--blue);
+  color: white;
 }
 
-.exact-date-field span {
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 700;
+.archive-date-display span,
+.archive-date-section > span {
+  font: 700 8px/1 "Courier New", monospace;
+  letter-spacing: 0.08em;
 }
 
-.exact-date-field input {
-  min-width: 158px;
-  min-height: 42px;
-  padding: 0 8px;
-  border: 1px solid var(--blue);
-  border-radius: 0;
-  outline: 0;
-  background: var(--paper);
+.archive-date-display strong {
+  font: 700 20px/1 "Courier New", monospace;
+  letter-spacing: 0.04em;
+}
+
+.archive-date-section {
+  padding: 10px 12px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.archive-date-section:last-child {
+  border-bottom: 0;
+}
+
+.archive-date-section > span {
+  display: block;
+  margin-bottom: 8px;
   color: var(--blue);
-  font: 700 12px/1 "Courier New", monospace;
+}
+
+.archive-year-options,
+.archive-month-options,
+.archive-day-options {
+  display: grid;
+  gap: 4px;
+}
+
+.archive-year-options {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.archive-month-options {
+  grid-template-columns: repeat(6, 1fr);
+}
+
+.archive-day-options {
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.archive-year-options button,
+.archive-month-options button,
+.archive-day-options button {
+  min-width: 0;
+  min-height: 38px;
+  padding: 0;
+  border: 1px solid var(--blue);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--blue);
+  font: 700 10px/1 "Courier New", monospace;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.archive-year-options button.active,
+.archive-month-options button.active,
+.archive-day-options button.active {
+  background: var(--blue);
+  color: white;
+}
+
+.archive-year-options button:disabled,
+.archive-month-options button:disabled,
+.archive-day-options button:disabled {
+  border-color: var(--line);
+  color: rgba(18, 63, 200, 0.24);
+  cursor: not-allowed;
 }
 
 .choice-hint {

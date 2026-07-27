@@ -137,10 +137,24 @@ const weekDays = [
 ];
 
 const allWeekDays = weekDays.map((item) => item.day);
+const longTermYears = [2026, 2027];
+const yearMonths = Array.from({ length: 12 }, (_, index) => index + 1);
 
 function getSuggestedMultiDays(anchor: WeekDay) {
   const anchorIndex = allWeekDays.indexOf(anchor);
   return [anchor, allWeekDays[(anchorIndex + 2) % allWeekDays.length]];
+}
+
+function getDaysInMonth(year: number, month: number) {
+  return new Date(year, month, 0).getDate();
+}
+
+function getMinimumLongTermDay(year: number, month: number) {
+  return year === 2026 && month === 7 ? 27 : 1;
+}
+
+function isPastLongTermDate(year: number, month: number, day: number) {
+  return year * 10000 + month * 100 + day < 20260727;
 }
 
 const cyclePlans = {
@@ -283,7 +297,9 @@ export default function Home() {
   const [newFrequency, setNewFrequency] = useState("每周 1 次");
   const [newTaskDays, setNewTaskDays] = useState<WeekDay[]>(["五"]);
   const [newMonthDay, setNewMonthDay] = useState(7);
-  const [newLongTermDate, setNewLongTermDate] = useState("2026-08-07");
+  const [newLongTermYear, setNewLongTermYear] = useState(2026);
+  const [newLongTermMonth, setNewLongTermMonth] = useState(8);
+  const [newLongTermDay, setNewLongTermDay] = useState(7);
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
@@ -347,6 +363,13 @@ export default function Home() {
   const isMonthlyFrequency = newFrequency === "每月 1 次";
   const isLongTermFrequency =
     newFrequency === "每季度 1 次" || newFrequency === "每半年 1 次";
+  const newLongTermDate = `${newLongTermYear}-${String(
+    newLongTermMonth,
+  ).padStart(2, "0")}-${String(newLongTermDay).padStart(2, "0")}`;
+  const longTermDaysInMonth = getDaysInMonth(
+    newLongTermYear,
+    newLongTermMonth,
+  );
   const isNewScheduleValid = isDailyFrequency
     ? newTaskDays.length === allWeekDays.length
     : isMultiFrequency
@@ -355,7 +378,12 @@ export default function Home() {
         ? newTaskDays.length === 1
         : isMonthlyFrequency
           ? newMonthDay >= 1 && newMonthDay <= 31
-          : Boolean(newLongTermDate);
+          : isLongTermFrequency &&
+            !isPastLongTermDate(
+              newLongTermYear,
+              newLongTermMonth,
+              newLongTermDay,
+            );
   const scheduleLegend = isDailyFrequency
     ? "每天执行 / EVERY DAY"
     : isMultiFrequency
@@ -411,7 +439,9 @@ export default function Home() {
     setNewFrequency("每周 1 次");
     setNewTaskDays([selectedDay]);
     setNewMonthDay(Number(selectedDayMeta.date));
-    setNewLongTermDate(`2026-08-${selectedDayMeta.date}`);
+    setNewLongTermYear(2026);
+    setNewLongTermMonth(8);
+    setNewLongTermDay(Number(selectedDayMeta.date));
     setIsAdding(true);
   }
 
@@ -435,6 +465,28 @@ export default function Home() {
     if (frequency === "每周 1 次") {
       setNewTaskDays((current) => [current[0] ?? selectedDay]);
     }
+  }
+
+  function chooseLongTermYear(year: number) {
+    const month = year === 2026 && newLongTermMonth < 7 ? 7 : newLongTermMonth;
+    const minimumDay = getMinimumLongTermDay(year, month);
+    const maximumDay = getDaysInMonth(year, month);
+
+    setNewLongTermYear(year);
+    setNewLongTermMonth(month);
+    setNewLongTermDay((current) =>
+      Math.max(minimumDay, Math.min(current, maximumDay)),
+    );
+  }
+
+  function chooseLongTermMonth(month: number) {
+    const minimumDay = getMinimumLongTermDay(newLongTermYear, month);
+    const maximumDay = getDaysInMonth(newLongTermYear, month);
+
+    setNewLongTermMonth(month);
+    setNewLongTermDay((current) =>
+      Math.max(minimumDay, Math.min(current, maximumDay)),
+    );
   }
 
   function toggleNewTaskDay(day: WeekDay) {
@@ -1094,18 +1146,101 @@ export default function Home() {
                   )}
 
                   {isLongTermFrequency && (
-                    <label className="exact-date-field">
-                      <span>选择完整日期</span>
-                      <input
-                        aria-label="首次执行日期"
-                        min="2026-07-27"
-                        onChange={(event) =>
-                          setNewLongTermDate(event.target.value)
-                        }
-                        type="date"
-                        value={newLongTermDate}
-                      />
-                    </label>
+                    <div className="archive-date-picker">
+                      <div
+                        aria-live="polite"
+                        className="archive-date-display"
+                      >
+                        <span>SELECTED DATE</span>
+                        <strong>
+                          {newLongTermYear}.
+                          {String(newLongTermMonth).padStart(2, "0")}.
+                          {String(newLongTermDay).padStart(2, "0")}
+                        </strong>
+                      </div>
+
+                      <div className="archive-date-section">
+                        <span>年份 / YEAR</span>
+                        <div
+                          aria-label="选择年份"
+                          className="archive-year-options"
+                          role="group"
+                        >
+                          {longTermYears.map((year) => (
+                            <button
+                              aria-pressed={newLongTermYear === year}
+                              className={
+                                newLongTermYear === year ? "active" : ""
+                              }
+                              key={year}
+                              onClick={() => chooseLongTermYear(year)}
+                              type="button"
+                            >
+                              {year}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="archive-date-section">
+                        <span>月份 / MONTH</span>
+                        <div
+                          aria-label="选择月份"
+                          className="archive-month-options"
+                          role="group"
+                        >
+                          {yearMonths.map((month) => (
+                            <button
+                              aria-label={`${month}月`}
+                              aria-pressed={newLongTermMonth === month}
+                              className={
+                                newLongTermMonth === month ? "active" : ""
+                              }
+                              disabled={
+                                newLongTermYear === 2026 && month < 7
+                              }
+                              key={month}
+                              onClick={() => chooseLongTermMonth(month)}
+                              type="button"
+                            >
+                              {String(month).padStart(2, "0")}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="archive-date-section">
+                        <span>日期 / DAY</span>
+                        <div
+                          aria-label="选择日期"
+                          className="archive-day-options"
+                          role="group"
+                        >
+                          {Array.from(
+                            { length: longTermDaysInMonth },
+                            (_, index) => index + 1,
+                          ).map((day) => (
+                            <button
+                              aria-label={`${newLongTermMonth}月${day}日`}
+                              aria-pressed={newLongTermDay === day}
+                              className={
+                                newLongTermDay === day ? "active" : ""
+                              }
+                              disabled={isPastLongTermDate(
+                                newLongTermYear,
+                                newLongTermMonth,
+                                day,
+                              )}
+                              key={day}
+                              onClick={() => setNewLongTermDay(day)}
+                              type="button"
+                            >
+                              {String(day).padStart(2, "0")}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
                   )}
 
                   <p
