@@ -1,0 +1,552 @@
+"use client";
+
+import { FormEvent, useEffect, useMemo, useState } from "react";
+
+type Room = "全部" | "客厅" | "厨房" | "卧室" | "卫生间" | "阳台";
+type Tab = "today" | "week" | "archive";
+
+type Task = {
+  id: string;
+  title: string;
+  room: Exclude<Room, "全部">;
+  frequency: string;
+  code: string;
+  estimate: number;
+  priority?: boolean;
+};
+
+const baseTasks: Task[] = [
+  {
+    id: "counter",
+    title: "台面及灶台擦拭",
+    room: "厨房",
+    frequency: "每周 2–3 次",
+    code: "KIT-012",
+    estimate: 12,
+    priority: true,
+  },
+  {
+    id: "floor",
+    title: "地面清洁（扫地＋拖地）",
+    room: "客厅",
+    frequency: "每周 1–2 次",
+    code: "LIV-004",
+    estimate: 20,
+  },
+  {
+    id: "bed",
+    title: "床品除尘与整理",
+    room: "卧室",
+    frequency: "每周 1 次",
+    code: "BED-008",
+    estimate: 15,
+  },
+  {
+    id: "mirror",
+    title: "镜子与台面去水渍",
+    room: "卫生间",
+    frequency: "每周 1 次",
+    code: "BAT-006",
+    estimate: 10,
+    priority: true,
+  },
+  {
+    id: "books",
+    title: "书籍与常用物品归位",
+    room: "客厅",
+    frequency: "每周 1 次",
+    code: "LIV-011",
+    estimate: 8,
+  },
+  {
+    id: "fridge",
+    title: "冰箱过期食品检查",
+    room: "厨房",
+    frequency: "每月 1 次",
+    code: "KIT-021",
+    estimate: 10,
+  },
+  {
+    id: "plants",
+    title: "绿植浇水与叶面养护",
+    room: "阳台",
+    frequency: "每周 1 次",
+    code: "BAL-005",
+    estimate: 12,
+  },
+];
+
+const rooms: Room[] = ["全部", "客厅", "厨房", "卧室", "卫生间", "阳台"];
+
+const weekDays = [
+  { day: "一", date: "03", done: 3, total: 3 },
+  { day: "二", date: "04", done: 2, total: 2 },
+  { day: "三", date: "05", done: 4, total: 4 },
+  { day: "四", date: "06", done: 2, total: 3 },
+  { day: "五", date: "07", done: 0, total: 2, current: true },
+  { day: "六", date: "08", done: 0, total: 5 },
+  { day: "日", date: "09", done: 0, total: 1 },
+];
+
+function readStoredTasks(): Task[] {
+  try {
+    const saved = window.localStorage.getItem("household-archive-custom");
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
+}
+
+export default function Home() {
+  const [activeTab, setActiveTab] = useState<Tab>("today");
+  const [activeRoom, setActiveRoom] = useState<Room>("全部");
+  const [completed, setCompleted] = useState<string[]>(["floor", "books"]);
+  const [customTasks, setCustomTasks] = useState<Task[]>([]);
+  const [isAdding, setIsAdding] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newRoom, setNewRoom] = useState<Exclude<Room, "全部">>("客厅");
+  const [newFrequency, setNewFrequency] = useState("每周 1 次");
+  const [notice, setNotice] = useState("");
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem("household-archive-done");
+      if (saved) setCompleted(JSON.parse(saved));
+      setCustomTasks(readStoredTasks());
+    } catch {
+      // The app remains fully usable when browser storage is unavailable.
+    }
+  }, []);
+
+  const tasks = useMemo(() => [...baseTasks, ...customTasks], [customTasks]);
+  const filteredTasks = useMemo(
+    () =>
+      activeRoom === "全部"
+        ? tasks
+        : tasks.filter((task) => task.room === activeRoom),
+    [activeRoom, tasks],
+  );
+
+  const doneCount = tasks.filter((task) => completed.includes(task.id)).length;
+  const progress = Math.round((doneCount / tasks.length) * 100);
+  const totalMinutes = tasks.reduce((sum, task) => sum + task.estimate, 0);
+  const finishedMinutes = tasks
+    .filter((task) => completed.includes(task.id))
+    .reduce((sum, task) => sum + task.estimate, 0);
+
+  function toggleTask(id: string) {
+    const next = completed.includes(id)
+      ? completed.filter((taskId) => taskId !== id)
+      : [...completed, id];
+    setCompleted(next);
+    window.localStorage.setItem("household-archive-done", JSON.stringify(next));
+    setNotice(next.includes(id) ? "已完成一项，档案已更新" : "已撤销完成状态");
+    window.setTimeout(() => setNotice(""), 1800);
+  }
+
+  function submitTask(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!newTitle.trim()) return;
+
+    const task: Task = {
+      id: `custom-${Date.now()}`,
+      title: newTitle.trim(),
+      room: newRoom,
+      frequency: newFrequency,
+      code: `USR-${String(customTasks.length + 1).padStart(3, "0")}`,
+      estimate: 15,
+    };
+    const next = [...customTasks, task];
+    setCustomTasks(next);
+    window.localStorage.setItem(
+      "household-archive-custom",
+      JSON.stringify(next),
+    );
+    setNewTitle("");
+    setIsAdding(false);
+    setActiveTab("today");
+    setNotice("新任务已归档");
+    window.setTimeout(() => setNotice(""), 1800);
+  }
+
+  function resetArchive() {
+    setCompleted([]);
+    window.localStorage.setItem("household-archive-done", "[]");
+    setNotice("本周打卡已重置");
+    window.setTimeout(() => setNotice(""), 1800);
+  }
+
+  return (
+    <main className="blueprint-shell">
+      <section className="mini-app" aria-label="家务档案小程序">
+        <header className="app-header">
+          <div className="technical-strip">
+            <div>
+              <span>档案编号</span>
+              <strong>H.A—2026—08</strong>
+            </div>
+            <div>
+              <span>当前周期</span>
+              <strong>第 01 周 / 运行中</strong>
+            </div>
+            <div>
+              <span>更新日期</span>
+              <strong>08.07.2026</strong>
+            </div>
+          </div>
+
+          <div className="hero-title">
+            <p>HOUSEHOLD ARCHIVE / 家庭维护系统</p>
+            <h1>家务档案</h1>
+            <div className="title-footer">
+              <span>ARCHIVE_VOL.01</span>
+              <span>GRID UNIT: 10MM</span>
+            </div>
+          </div>
+        </header>
+
+        <div className="content-frame">
+          {activeTab === "today" && (
+            <>
+              <section className="today-overview" aria-labelledby="today-title">
+                <div
+                  className="progress-dial"
+                  style={{
+                    background: `conic-gradient(var(--blue) ${progress}%, #dfe4f5 ${progress}% 100%)`,
+                  }}
+                  aria-label={`今日进度 ${progress}%`}
+                >
+                  <div>
+                    <strong>
+                      {doneCount}
+                      <small>/{tasks.length}</small>
+                    </strong>
+                    <span>已完成</span>
+                  </div>
+                </div>
+                <div className="overview-copy">
+                  <div className="section-kicker">
+                    <span>01</span>
+                    <p>TODAY&apos;S OPERATION</p>
+                  </div>
+                  <h2 id="today-title">今日作业</h2>
+                  <p>
+                    预计剩余 {Math.max(totalMinutes - finishedMinutes, 0)} 分钟
+                    · 优先处理 {tasks.filter((task) => task.priority).length} 项
+                  </p>
+                  <div className="progress-line">
+                    <i style={{ width: `${progress}%` }} />
+                  </div>
+                </div>
+              </section>
+
+              <section className="week-ruler" aria-label="本周日期">
+                {weekDays.map((item) => (
+                  <div className={item.current ? "current" : ""} key={item.day}>
+                    <span>周{item.day}</span>
+                    <strong>{item.date}</strong>
+                    <i className={item.done === item.total ? "complete" : ""} />
+                  </div>
+                ))}
+              </section>
+
+              <section className="task-section">
+                <div className="filter-heading">
+                  <div>
+                    <span>任务清单</span>
+                    <strong>{String(filteredTasks.length).padStart(2, "0")} ITEMS</strong>
+                  </div>
+                  <button
+                    className="add-inline"
+                    onClick={() => setIsAdding(true)}
+                    type="button"
+                  >
+                    ＋ 新任务
+                  </button>
+                </div>
+
+                <div className="room-filters" aria-label="按房间筛选">
+                  {rooms.map((room) => (
+                    <button
+                      className={activeRoom === room ? "active" : ""}
+                      key={room}
+                      onClick={() => setActiveRoom(room)}
+                      type="button"
+                    >
+                      {room}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="task-list">
+                  {filteredTasks.map((task, index) => {
+                    const isDone = completed.includes(task.id);
+                    return (
+                      <label
+                        className={`task-card ${isDone ? "is-done" : ""}`}
+                        key={task.id}
+                      >
+                        <span className="task-index">
+                          {String(index + 1).padStart(2, "0")}
+                        </span>
+                        <input
+                          checked={isDone}
+                          onChange={() => toggleTask(task.id)}
+                          type="checkbox"
+                        />
+                        <span className="checkmark" aria-hidden="true">
+                          {isDone ? "✓" : ""}
+                        </span>
+                        <span className="task-copy">
+                          <strong>{task.title}</strong>
+                          <span>
+                            {task.room} / {task.frequency}
+                          </span>
+                        </span>
+                        <span className="task-meta">
+                          <small>{task.code}</small>
+                          <strong>{task.estimate}&apos;</strong>
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </section>
+            </>
+          )}
+
+          {activeTab === "week" && (
+            <section className="week-view" aria-labelledby="week-title">
+              <div className="page-heading">
+                <div className="section-kicker">
+                  <span>02</span>
+                  <p>WEEKLY SCHEDULE</p>
+                </div>
+                <h2 id="week-title">周计划</h2>
+                <p>8月3日—8月9日 / 21 项维护任务</p>
+              </div>
+
+              <div className="week-grid">
+                {weekDays.map((item) => (
+                  <div className={item.current ? "current" : ""} key={item.day}>
+                    <span>周{item.day}</span>
+                    <strong>{item.date}</strong>
+                    <b>
+                      {item.done}/{item.total}
+                    </b>
+                    <i
+                      style={{
+                        height: `${Math.max((item.done / item.total) * 100, 6)}%`,
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <div className="schedule-table">
+                <div className="schedule-head">
+                  <span>执行日期</span>
+                  <span>维护项目</span>
+                  <span>区域</span>
+                </div>
+                {[
+                  ["08.07 / 今日", "镜面去水渍", "卫生间"],
+                  ["08.07 / 今日", "冰箱食品检查", "厨房"],
+                  ["08.08 / 周六", "全屋地面清洁", "全屋"],
+                  ["08.08 / 周六", "床品更换", "卧室"],
+                  ["08.09 / 周日", "阳台玻璃轨道", "阳台"],
+                ].map((row) => (
+                  <div className="schedule-row" key={row[0] + row[1]}>
+                    <span>{row[0]}</span>
+                    <strong>{row[1]}</strong>
+                    <span>{row[2]}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="blue-note">
+                <span>MAINTENANCE NOTE / 备注 01</span>
+                <p>
+                  周末安排耗时较长的深度清洁；日常维护尽量控制在 20 分钟内。
+                </p>
+              </div>
+            </section>
+          )}
+
+          {activeTab === "archive" && (
+            <section className="archive-view" aria-labelledby="archive-title">
+              <div className="page-heading">
+                <div className="section-kicker">
+                  <span>03</span>
+                  <p>ARCHIVE INDEX</p>
+                </div>
+                <h2 id="archive-title">档案总览</h2>
+                <p>2026年8月 / 家庭维护记录</p>
+              </div>
+
+              <div className="stat-grid">
+                <article>
+                  <span>本月完成</span>
+                  <strong>32</strong>
+                  <small>较上月 +12%</small>
+                </article>
+                <article>
+                  <span>连续打卡</span>
+                  <strong>06</strong>
+                  <small>DAYS / 天</small>
+                </article>
+                <article>
+                  <span>计划完成率</span>
+                  <strong>{progress}%</strong>
+                  <small>本周实时</small>
+                </article>
+                <article>
+                  <span>维护区域</span>
+                  <strong>05</strong>
+                  <small>ZONES / 区域</small>
+                </article>
+              </div>
+
+              <div className="room-index">
+                <div className="index-title">
+                  <span>区域索引</span>
+                  <small>ROOM NOMENCLATURE</small>
+                </div>
+                {[
+                  ["01", "客厅", "LIVING ROOM", "12 项"],
+                  ["02", "厨房", "KITCHEN", "18 项"],
+                  ["03", "卧室", "BEDROOM", "09 项"],
+                  ["04", "卫生间", "BATHROOM", "13 项"],
+                  ["05", "阳台", "BALCONY", "08 项"],
+                ].map((room) => (
+                  <div className="index-row" key={room[0]}>
+                    <b>{room[0]}</b>
+                    <strong>{room[1]}</strong>
+                    <span>{room[2]}</span>
+                    <small>{room[3]}</small>
+                  </div>
+                ))}
+              </div>
+
+              <button className="reset-button" onClick={resetArchive} type="button">
+                重置本周打卡
+              </button>
+              <p className="storage-note">数据仅保存在当前设备 · LOCAL ARCHIVE</p>
+            </section>
+          )}
+        </div>
+
+        <nav className="bottom-nav" aria-label="主导航">
+          <button
+            className={activeTab === "today" ? "active" : ""}
+            onClick={() => setActiveTab("today")}
+            type="button"
+          >
+            <span>01</span>
+            今日
+          </button>
+          <button
+            className={activeTab === "week" ? "active" : ""}
+            onClick={() => setActiveTab("week")}
+            type="button"
+          >
+            <span>02</span>
+            周计划
+          </button>
+          <button
+            className="new-task-nav"
+            onClick={() => setIsAdding(true)}
+            type="button"
+          >
+            <span>＋</span>
+            新任务
+          </button>
+          <button
+            className={activeTab === "archive" ? "active" : ""}
+            onClick={() => setActiveTab("archive")}
+            type="button"
+          >
+            <span>03</span>
+            档案
+          </button>
+        </nav>
+
+        {isAdding && (
+          <div
+            className="modal-backdrop"
+            onMouseDown={(event) => {
+              if (event.currentTarget === event.target) setIsAdding(false);
+            }}
+          >
+            <form className="task-modal" onSubmit={submitTask}>
+              <div className="modal-head">
+                <div>
+                  <small>NEW ARCHIVE ENTRY / 04</small>
+                  <h2>新增任务</h2>
+                </div>
+                <button
+                  aria-label="关闭新增任务"
+                  onClick={() => setIsAdding(false)}
+                  type="button"
+                >
+                  ×
+                </button>
+              </div>
+
+              <label>
+                <span>任务名称 / ITEM NAME</span>
+                <input
+                  autoFocus
+                  onChange={(event) => setNewTitle(event.target.value)}
+                  placeholder="例如：清洁空调滤网"
+                  required
+                  value={newTitle}
+                />
+              </label>
+
+              <div className="form-grid">
+                <label>
+                  <span>区域 / ZONE</span>
+                  <select
+                    onChange={(event) =>
+                      setNewRoom(event.target.value as Exclude<Room, "全部">)
+                    }
+                    value={newRoom}
+                  >
+                    {rooms.slice(1).map((room) => (
+                      <option key={room}>{room}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  <span>频次 / FREQUENCY</span>
+                  <select
+                    onChange={(event) => setNewFrequency(event.target.value)}
+                    value={newFrequency}
+                  >
+                    <option>每天 1 次</option>
+                    <option>每周 1 次</option>
+                    <option>每周 2–3 次</option>
+                    <option>每月 1 次</option>
+                  </select>
+                </label>
+              </div>
+
+              <button className="submit-task" type="submit">
+                录入家务档案
+                <span>ENTER ↗</span>
+              </button>
+            </form>
+          </div>
+        )}
+
+        {notice && (
+          <div className="notice" role="status">
+            <span>✓</span>
+            {notice}
+          </div>
+        )}
+      </section>
+    </main>
+  );
+}
