@@ -292,17 +292,21 @@ button {
   background: rgba(241, 242, 241, 0.94);
 }
 
-.week-ruler > div {
+.week-ruler > button {
   position: relative;
   display: flex;
   min-height: 60px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  padding: 0;
+  border: 0;
   border-right: 1px solid var(--line);
+  background: transparent;
+  cursor: pointer;
 }
 
-.week-ruler > div:last-child {
+.week-ruler > button:last-child {
   border-right: 0;
 }
 
@@ -575,17 +579,21 @@ button {
   border-bottom: 1px solid var(--blue);
 }
 
-.week-grid > div {
+.week-grid > button {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding-top: 13px;
   overflow: hidden;
+  border: 0;
   border-right: 1px solid var(--line);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
 }
 
-.week-grid > div:last-child {
+.week-grid > button:last-child {
   border-right: 0;
 }
 

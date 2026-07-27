@@ -5,6 +5,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 type Room = "全部" | "客厅" | "厨房" | "卧室" | "卫生间" | "阳台";
 type Tab = "today" | "week" | "archive";
 type PlanPeriod = "week" | "quarter" | "half";
+type WeekDay = "一" | "二" | "三" | "四" | "五" | "六" | "日";
 
 type Task = {
   id: string;
@@ -14,6 +15,7 @@ type Task = {
   code: string;
   estimate: number;
   priority?: boolean;
+  scheduledDays?: WeekDay[];
 };
 
 const baseTasks: Task[] = [
@@ -25,6 +27,7 @@ const baseTasks: Task[] = [
     code: "KIT-012",
     estimate: 12,
     priority: true,
+    scheduledDays: ["二", "五"],
   },
   {
     id: "floor",
@@ -33,6 +36,7 @@ const baseTasks: Task[] = [
     frequency: "每周 1–2 次",
     code: "LIV-004",
     estimate: 20,
+    scheduledDays: ["一", "三", "六"],
   },
   {
     id: "bed",
@@ -41,6 +45,7 @@ const baseTasks: Task[] = [
     frequency: "每周 1 次",
     code: "BED-008",
     estimate: 15,
+    scheduledDays: ["六"],
   },
   {
     id: "mirror",
@@ -50,6 +55,7 @@ const baseTasks: Task[] = [
     code: "BAT-006",
     estimate: 10,
     priority: true,
+    scheduledDays: ["五"],
   },
   {
     id: "books",
@@ -58,6 +64,7 @@ const baseTasks: Task[] = [
     frequency: "每周 1 次",
     code: "LIV-011",
     estimate: 8,
+    scheduledDays: ["三", "日"],
   },
   {
     id: "fridge",
@@ -66,6 +73,7 @@ const baseTasks: Task[] = [
     frequency: "每月 1 次",
     code: "KIT-021",
     estimate: 10,
+    scheduledDays: ["五"],
   },
   {
     id: "plants",
@@ -74,19 +82,56 @@ const baseTasks: Task[] = [
     frequency: "每周 1 次",
     code: "BAL-005",
     estimate: 12,
+    scheduledDays: ["二", "六"],
+  },
+  {
+    id: "basin",
+    title: "洗手盆与龙头清洁",
+    room: "卫生间",
+    frequency: "每周 2 次",
+    code: "BAT-009",
+    estimate: 10,
+    scheduledDays: ["一", "四"],
+  },
+  {
+    id: "dust",
+    title: "桌面与电器表面除尘",
+    room: "客厅",
+    frequency: "每周 2 次",
+    code: "LIV-014",
+    estimate: 12,
+    scheduledDays: ["二", "五"],
+  },
+  {
+    id: "bins",
+    title: "垃圾桶清洗消毒",
+    room: "厨房",
+    frequency: "每周 2 次",
+    code: "KIT-018",
+    estimate: 10,
+    scheduledDays: ["三", "六"],
+  },
+  {
+    id: "washer",
+    title: "洗衣机胶圈与滤网检查",
+    room: "阳台",
+    frequency: "每周 1 次",
+    code: "BAL-010",
+    estimate: 12,
+    scheduledDays: ["日"],
   },
 ];
 
 const rooms: Room[] = ["全部", "客厅", "厨房", "卧室", "卫生间", "阳台"];
 
 const weekDays = [
-  { day: "一", date: "03", done: 3, total: 3 },
-  { day: "二", date: "04", done: 2, total: 2 },
-  { day: "三", date: "05", done: 4, total: 4 },
-  { day: "四", date: "06", done: 2, total: 3 },
-  { day: "五", date: "07", done: 0, total: 2, current: true },
-  { day: "六", date: "08", done: 0, total: 5 },
-  { day: "日", date: "09", done: 0, total: 1 },
+  { day: "一" as WeekDay, date: "03" },
+  { day: "二" as WeekDay, date: "04" },
+  { day: "三" as WeekDay, date: "05" },
+  { day: "四" as WeekDay, date: "06" },
+  { day: "五" as WeekDay, date: "07", current: true },
+  { day: "六" as WeekDay, date: "08" },
+  { day: "日" as WeekDay, date: "09" },
 ];
 
 const cyclePlans = {
@@ -201,9 +246,14 @@ function readStoredTasks(): Task[] {
   }
 }
 
+function isTaskScheduled(task: Task, day: WeekDay) {
+  return (task.scheduledDays ?? ["五"]).includes(day);
+}
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState<Tab>("today");
   const [planPeriod, setPlanPeriod] = useState<PlanPeriod>("week");
+  const [selectedDay, setSelectedDay] = useState<WeekDay>("五");
   const [activeRoom, setActiveRoom] = useState<Room>("全部");
   const [completed, setCompleted] = useState<string[]>(["floor", "books"]);
   const [cycleCompleted, setCycleCompleted] = useState<string[]>([]);
@@ -229,20 +279,41 @@ export default function Home() {
   }, []);
 
   const tasks = useMemo(() => [...baseTasks, ...customTasks], [customTasks]);
+  const selectedDayTasks = useMemo(
+    () => tasks.filter((task) => isTaskScheduled(task, selectedDay)),
+    [selectedDay, tasks],
+  );
   const filteredTasks = useMemo(
     () =>
       activeRoom === "全部"
-        ? tasks
-        : tasks.filter((task) => task.room === activeRoom),
-    [activeRoom, tasks],
+        ? selectedDayTasks
+        : selectedDayTasks.filter((task) => task.room === activeRoom),
+    [activeRoom, selectedDayTasks],
   );
 
-  const doneCount = tasks.filter((task) => completed.includes(task.id)).length;
-  const progress = Math.round((doneCount / tasks.length) * 100);
-  const totalMinutes = tasks.reduce((sum, task) => sum + task.estimate, 0);
-  const finishedMinutes = tasks
+  const doneCount = selectedDayTasks.filter((task) =>
+    completed.includes(task.id),
+  ).length;
+  const progress = selectedDayTasks.length
+    ? Math.round((doneCount / selectedDayTasks.length) * 100)
+    : 0;
+  const totalMinutes = selectedDayTasks.reduce(
+    (sum, task) => sum + task.estimate,
+    0,
+  );
+  const finishedMinutes = selectedDayTasks
     .filter((task) => completed.includes(task.id))
     .reduce((sum, task) => sum + task.estimate, 0);
+  const selectedDayMeta =
+    weekDays.find((item) => item.day === selectedDay) ?? weekDays[4];
+  const pageTitle =
+    activeTab === "today"
+      ? selectedDay === "五"
+        ? "今日作业"
+        : `周${selectedDay}作业`
+      : activeTab === "week"
+        ? "周期计划"
+        : "档案总览";
 
   function toggleTask(id: string) {
     const next = completed.includes(id)
@@ -278,6 +349,7 @@ export default function Home() {
       frequency: newFrequency,
       code: `USR-${String(customTasks.length + 1).padStart(3, "0")}`,
       estimate: 15,
+      scheduledDays: [selectedDay],
     };
     const next = [...customTasks, task];
     setCustomTasks(next);
@@ -310,17 +382,17 @@ export default function Home() {
             </div>
             <div>
               <span>当前周期</span>
-              <strong>第 01 周 / 运行中</strong>
+              <strong>第 01 周 / 周{selectedDay}</strong>
             </div>
             <div>
               <span>更新日期</span>
-              <strong>08.07.2026</strong>
+              <strong>08.{selectedDayMeta.date}.2026</strong>
             </div>
           </div>
 
           <div className="hero-title">
             <p>HOUSEHOLD ARCHIVE / 家庭维护系统</p>
-            <h1>家务档案</h1>
+            <h1>{pageTitle}</h1>
             <div className="title-footer">
               <span>ARCHIVE_VOL.01</span>
               <span>GRID UNIT: 10MM</span>
@@ -337,12 +409,12 @@ export default function Home() {
                   style={{
                     background: `conic-gradient(var(--blue) ${progress}%, #dfe4f5 ${progress}% 100%)`,
                   }}
-                  aria-label={`今日进度 ${progress}%`}
+                  aria-label={`${pageTitle}进度 ${progress}%`}
                 >
                   <div>
                     <strong>
                       {doneCount}
-                      <small>/{tasks.length}</small>
+                      <small>/{selectedDayTasks.length}</small>
                     </strong>
                     <span>已完成</span>
                   </div>
@@ -350,12 +422,17 @@ export default function Home() {
                 <div className="overview-copy">
                   <div className="section-kicker">
                     <span>01</span>
-                    <p>TODAY&apos;S OPERATION</p>
+                    <p>
+                      {selectedDay === "五"
+                        ? "TODAY'S OPERATION"
+                        : "SELECTED DAY OPERATION"}
+                    </p>
                   </div>
-                  <h2 id="today-title">今日作业</h2>
+                  <h2 id="today-title">{pageTitle}</h2>
                   <p>
                     预计剩余 {Math.max(totalMinutes - finishedMinutes, 0)} 分钟
-                    · 优先处理 {tasks.filter((task) => task.priority).length} 项
+                    · 优先处理{" "}
+                    {selectedDayTasks.filter((task) => task.priority).length} 项
                   </p>
                   <div className="progress-line">
                     <i style={{ width: `${progress}%` }} />
@@ -364,19 +441,40 @@ export default function Home() {
               </section>
 
               <section className="week-ruler" aria-label="本周日期">
-                {weekDays.map((item) => (
-                  <div className={item.current ? "current" : ""} key={item.day}>
-                    <span>周{item.day}</span>
-                    <strong>{item.date}</strong>
-                    <i className={item.done === item.total ? "complete" : ""} />
-                  </div>
-                ))}
+                {weekDays.map((item) => {
+                  const dayTasks = tasks.filter((task) =>
+                    isTaskScheduled(task, item.day),
+                  );
+                  const dayDone = dayTasks.filter((task) =>
+                    completed.includes(task.id),
+                  ).length;
+                  return (
+                    <button
+                      aria-label={`切换到周${item.day}，8月${item.date}日`}
+                      aria-pressed={selectedDay === item.day}
+                      className={selectedDay === item.day ? "current" : ""}
+                      key={item.day}
+                      onClick={() => setSelectedDay(item.day)}
+                      type="button"
+                    >
+                      <span>周{item.day}</span>
+                      <strong>{item.date}</strong>
+                      <i
+                        className={
+                          dayTasks.length > 0 && dayDone === dayTasks.length
+                            ? "complete"
+                            : ""
+                        }
+                      />
+                    </button>
+                  );
+                })}
               </section>
 
               <section className="task-section">
                 <div className="filter-heading">
                   <div>
-                    <span>任务清单</span>
+                    <span>周{selectedDay}任务清单</span>
                     <strong>{String(filteredTasks.length).padStart(2, "0")} ITEMS</strong>
                   </div>
                   <button
@@ -447,7 +545,8 @@ export default function Home() {
                 </div>
                 <h2 id="week-title">周期计划</h2>
                 <p>
-                  {planPeriod === "week" && "8月3日—8月9日 / 21 项维护任务"}
+                  {planPeriod === "week" &&
+                    `8月${selectedDayMeta.date}日 / 周${selectedDay} / ${selectedDayTasks.length} 项维护任务`}
                   {planPeriod === "quarter" && "2026年第 3 季度 / 6 项深度维护"}
                   {planPeriod === "half" && "2026年下半年 / 6 项系统保养"}
                 </p>
@@ -474,26 +573,38 @@ export default function Home() {
               {planPeriod === "week" && (
                 <>
                   <div className="week-grid">
-                    {weekDays.map((item) => (
-                      <div
-                        className={item.current ? "current" : ""}
-                        key={item.day}
-                      >
-                        <span>周{item.day}</span>
-                        <strong>{item.date}</strong>
-                        <b>
-                          {item.done}/{item.total}
-                        </b>
-                        <i
-                          style={{
-                            height: `${Math.max(
-                              (item.done / item.total) * 100,
-                              6,
-                            )}%`,
-                          }}
-                        />
-                      </div>
-                    ))}
+                    {weekDays.map((item) => {
+                      const dayTasks = tasks.filter((task) =>
+                        isTaskScheduled(task, item.day),
+                      );
+                      const dayDone = dayTasks.filter((task) =>
+                        completed.includes(task.id),
+                      ).length;
+                      const dayProgress = dayTasks.length
+                        ? (dayDone / dayTasks.length) * 100
+                        : 0;
+                      return (
+                        <button
+                          aria-label={`查看周${item.day}计划`}
+                          aria-pressed={selectedDay === item.day}
+                          className={selectedDay === item.day ? "current" : ""}
+                          key={item.day}
+                          onClick={() => setSelectedDay(item.day)}
+                          type="button"
+                        >
+                          <span>周{item.day}</span>
+                          <strong>{item.date}</strong>
+                          <b>
+                            {dayDone}/{dayTasks.length}
+                          </b>
+                          <i
+                            style={{
+                              height: `${Math.max(dayProgress, 6)}%`,
+                            }}
+                          />
+                        </button>
+                      );
+                    })}
                   </div>
 
                   <div className="schedule-table">
@@ -502,17 +613,13 @@ export default function Home() {
                       <span>维护项目</span>
                       <span>区域</span>
                     </div>
-                    {[
-                      ["08.07 / 今日", "镜面去水渍", "卫生间"],
-                      ["08.07 / 今日", "冰箱食品检查", "厨房"],
-                      ["08.08 / 周六", "全屋地面清洁", "全屋"],
-                      ["08.08 / 周六", "床品更换", "卧室"],
-                      ["08.09 / 周日", "阳台玻璃轨道", "阳台"],
-                    ].map((row) => (
-                      <div className="schedule-row" key={row[0] + row[1]}>
-                        <span>{row[0]}</span>
-                        <strong>{row[1]}</strong>
-                        <span>{row[2]}</span>
+                    {selectedDayTasks.map((task) => (
+                      <div className="schedule-row" key={task.id}>
+                        <span>
+                          08.{selectedDayMeta.date} / 周{selectedDay}
+                        </span>
+                        <strong>{task.title}</strong>
+                        <span>{task.room}</span>
                       </div>
                     ))}
                   </div>
