@@ -262,6 +262,7 @@ export default function Home() {
   const [newTitle, setNewTitle] = useState("");
   const [newRoom, setNewRoom] = useState<Exclude<Room, "全部">>("客厅");
   const [newFrequency, setNewFrequency] = useState("每周 1 次");
+  const [newTaskDay, setNewTaskDay] = useState<WeekDay>("五");
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
@@ -342,6 +343,11 @@ export default function Home() {
     window.setTimeout(() => setNotice(""), 1800);
   }
 
+  function openTaskModal() {
+    setNewTaskDay(selectedDay);
+    setIsAdding(true);
+  }
+
   function submitTask(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!newTitle.trim()) return;
@@ -353,7 +359,7 @@ export default function Home() {
       frequency: newFrequency,
       code: `USR-${String(customTasks.length + 1).padStart(3, "0")}`,
       estimate: 15,
-      scheduledDays: [selectedDay],
+      scheduledDays: [newTaskDay],
     };
     const next = [...customTasks, task];
     setCustomTasks(next);
@@ -362,6 +368,7 @@ export default function Home() {
       JSON.stringify(next),
     );
     setNewTitle("");
+    setSelectedDay(newTaskDay);
     setIsAdding(false);
     setActiveTab("today");
     setNotice("新任务已归档");
@@ -485,7 +492,7 @@ export default function Home() {
                   </div>
                   <button
                     className="add-inline"
-                    onClick={() => setIsAdding(true)}
+                    onClick={openTaskModal}
                     type="button"
                   >
                     ＋ 新任务
@@ -829,7 +836,7 @@ export default function Home() {
           </button>
           <button
             className="new-task-nav"
-            onClick={() => setIsAdding(true)}
+            onClick={openTaskModal}
             type="button"
           >
             <span>＋</span>
@@ -852,11 +859,18 @@ export default function Home() {
               if (event.currentTarget === event.target) setIsAdding(false);
             }}
           >
-            <form className="task-modal" onSubmit={submitTask}>
+            <form
+              aria-labelledby="new-task-title"
+              aria-modal="true"
+              className="task-modal"
+              onSubmit={submitTask}
+              role="dialog"
+            >
+              <div className="sheet-handle" aria-hidden="true" />
               <div className="modal-head">
                 <div>
                   <small>NEW ARCHIVE ENTRY / 04</small>
-                  <h2>新增任务</h2>
+                  <h2 id="new-task-title">新增任务</h2>
                 </div>
                 <button
                   aria-label="关闭新增任务"
@@ -867,51 +881,93 @@ export default function Home() {
                 </button>
               </div>
 
-              <label>
-                <span>任务名称 / ITEM NAME</span>
-                <input
-                  autoFocus
-                  onChange={(event) => setNewTitle(event.target.value)}
-                  placeholder="例如：清洁空调滤网"
-                  required
-                  value={newTitle}
-                />
-              </label>
+              <div className="task-form-body">
+                <label className="task-name-field">
+                  <span>任务名称 / ITEM NAME</span>
+                  <input
+                    enterKeyHint="done"
+                    maxLength={30}
+                    onChange={(event) => setNewTitle(event.target.value)}
+                    placeholder="例如：清洁空调滤网"
+                    required
+                    value={newTitle}
+                  />
+                </label>
 
-              <div className="form-grid">
-                <label>
-                  <span>区域 / ZONE</span>
-                  <select
-                    onChange={(event) =>
-                      setNewRoom(event.target.value as Exclude<Room, "全部">)
-                    }
-                    value={newRoom}
-                  >
-                    {rooms.slice(1).map((room) => (
-                      <option key={room}>{room}</option>
+                <fieldset className="mobile-choice-field">
+                  <legend>安排日期 / SCHEDULE</legend>
+                  <div className="task-day-picker">
+                    {weekDays.map((item) => (
+                      <button
+                        aria-pressed={newTaskDay === item.day}
+                        className={newTaskDay === item.day ? "active" : ""}
+                        key={item.day}
+                        onClick={() => setNewTaskDay(item.day)}
+                        type="button"
+                      >
+                        <span>周{item.day}</span>
+                        <strong>{item.date}</strong>
+                      </button>
                     ))}
-                  </select>
-                </label>
-                <label>
-                  <span>频次 / FREQUENCY</span>
-                  <select
-                    onChange={(event) => setNewFrequency(event.target.value)}
-                    value={newFrequency}
-                  >
-                    <option>每天 1 次</option>
-                    <option>每周 1 次</option>
-                    <option>每周 2–3 次</option>
-                    <option>每月 1 次</option>
-                    <option>每季度 1 次</option>
-                    <option>每半年 1 次</option>
-                  </select>
-                </label>
+                  </div>
+                </fieldset>
+
+                <fieldset className="mobile-choice-field">
+                  <legend>区域 / ZONE</legend>
+                  <div className="choice-grid room-choice-grid">
+                    {rooms.slice(1).map((room) => (
+                      <button
+                        aria-pressed={newRoom === room}
+                        className={newRoom === room ? "active" : ""}
+                        key={room}
+                        onClick={() =>
+                          setNewRoom(room as Exclude<Room, "全部">)
+                        }
+                        type="button"
+                      >
+                        {room}
+                      </button>
+                    ))}
+                  </div>
+                </fieldset>
+
+                <fieldset className="mobile-choice-field">
+                  <legend>频次 / FREQUENCY</legend>
+                  <div className="choice-grid frequency-choice-grid">
+                    {[
+                      "每天 1 次",
+                      "每周 1 次",
+                      "每周 2–3 次",
+                      "每月 1 次",
+                      "每季度 1 次",
+                      "每半年 1 次",
+                    ].map((frequency) => (
+                      <button
+                        aria-pressed={newFrequency === frequency}
+                        className={
+                          newFrequency === frequency ? "active" : ""
+                        }
+                        key={frequency}
+                        onClick={() => setNewFrequency(frequency)}
+                        type="button"
+                      >
+                        {frequency}
+                      </button>
+                    ))}
+                  </div>
+                </fieldset>
               </div>
 
-              <button className="submit-task" type="submit">
-                录入家务档案
-                <span>ENTER ↗</span>
-              </button>
+              <div className="modal-action">
+                <button
+                  className="submit-task"
+                  disabled={!newTitle.trim()}
+                  type="submit"
+                >
+                  添加到周{newTaskDay}
+                  <span>保存任务 ↗</span>
+                </button>
+              </div>
             </form>
           </div>
         )}

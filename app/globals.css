@@ -1109,12 +1109,17 @@ button {
   align-items: flex-end;
   background: rgba(7, 16, 37, 0.56);
   animation: fade-in 160ms ease-out;
+  overscroll-behavior: contain;
 }
 
 .task-modal {
+  display: flex;
   width: 100%;
-  padding: 18px 16px 22px;
+  max-height: min(92svh, 760px);
+  flex-direction: column;
+  overflow: hidden;
   border-top: 1px solid var(--blue);
+  border-radius: 18px 18px 0 0;
   background:
     linear-gradient(rgba(18, 63, 200, 0.09) 1px, transparent 1px),
     linear-gradient(90deg, rgba(18, 63, 200, 0.09) 1px, transparent 1px),
@@ -1123,11 +1128,21 @@ button {
   animation: slide-up 220ms ease-out;
 }
 
+.sheet-handle {
+  flex: 0 0 auto;
+  width: 42px;
+  height: 4px;
+  margin: 10px auto 2px;
+  border-radius: 10px;
+  background: rgba(18, 63, 200, 0.35);
+}
+
 .modal-head {
   display: flex;
+  flex: 0 0 auto;
   align-items: flex-start;
   justify-content: space-between;
-  padding-bottom: 14px;
+  padding: 8px 16px 14px;
   border-bottom: 1px solid var(--blue);
 }
 
@@ -1144,52 +1159,141 @@ button {
 }
 
 .modal-head button {
-  width: 34px;
-  height: 34px;
+  width: 44px;
+  height: 44px;
   border: 1px solid var(--blue);
   border-radius: 50%;
   background: transparent;
   color: var(--blue);
   font-size: 22px;
   cursor: pointer;
+  touch-action: manipulation;
 }
 
-.task-modal > label,
-.form-grid label {
+.task-form-body {
+  min-height: 0;
+  padding: 0 16px 18px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.task-name-field {
   display: flex;
   flex-direction: column;
   margin-top: 16px;
 }
 
-.task-modal label > span {
+.task-name-field > span,
+.mobile-choice-field legend {
   margin-bottom: 7px;
   color: var(--blue);
   font: 700 8px/1 "Courier New", monospace;
   letter-spacing: 0.06em;
 }
 
-.task-modal input,
-.task-modal select {
+.task-name-field input {
   width: 100%;
-  height: 44px;
-  padding: 0 11px;
+  height: 52px;
+  padding: 0 14px;
   border: 1px solid var(--blue);
   border-radius: 0;
   outline: 0;
   background: rgba(255, 255, 255, 0.72);
   color: var(--ink);
-  font-size: 12px;
+  font-size: 16px;
 }
 
-.task-modal input:focus,
-.task-modal select:focus {
+.task-name-field input:focus {
   box-shadow: inset 0 0 0 1px var(--blue);
 }
 
-.form-grid {
+.mobile-choice-field {
+  min-width: 0;
+  margin: 18px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.mobile-choice-field legend {
+  padding: 0;
+}
+
+.task-day-picker {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  border: 1px solid var(--blue);
+}
+
+.task-day-picker button {
+  display: flex;
+  min-width: 0;
+  min-height: 58px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0;
+  border: 0;
+  border-right: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.58);
+  color: var(--blue);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.task-day-picker button:last-child {
+  border-right: 0;
+}
+
+.task-day-picker button span {
+  font-size: 9px;
+}
+
+.task-day-picker button strong {
+  font: 700 15px/1 "Courier New", monospace;
+}
+
+.task-day-picker button.active {
+  background: var(--blue);
+  color: white;
+}
+
+.choice-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.room-choice-grid {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.frequency-choice-grid {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.choice-grid button {
+  min-height: 46px;
+  padding: 8px;
+  border: 1px solid var(--blue);
+  background: rgba(255, 255, 255, 0.58);
+  color: var(--blue);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.choice-grid button.active {
+  background: var(--blue);
+  color: white;
+}
+
+.modal-action {
+  flex: 0 0 auto;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--blue);
+  background: rgba(244, 244, 241, 0.97);
 }
 
 .submit-task {
@@ -1197,7 +1301,8 @@ button {
   width: 100%;
   align-items: center;
   justify-content: space-between;
-  margin-top: 18px;
+  min-height: 52px;
+  margin: 0;
   padding: 14px;
   border: 1px solid var(--blue);
   background: var(--blue);
@@ -1205,6 +1310,12 @@ button {
   font-size: 12px;
   font-weight: 800;
   cursor: pointer;
+  touch-action: manipulation;
+}
+
+.submit-task:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
 }
 
 .submit-task span {
