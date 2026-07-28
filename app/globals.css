@@ -94,7 +94,7 @@ button {
   --panel-rgb: 241, 241, 239;
   --line: rgba(var(--accent-rgb), 0.26);
   --fine-line: rgba(var(--accent-rgb), 0.11);
-  --muted: #65708a;
+  --muted: #566179;
 }
 
 .mini-app[data-skin="industrial"] {
@@ -109,7 +109,7 @@ button {
   --panel-rgb: 250, 250, 248;
   --line: rgba(var(--accent-rgb), 0.2);
   --fine-line: rgba(var(--accent-rgb), 0.08);
-  --muted: #777777;
+  --muted: #666666;
 }
 
 .mini-app[data-skin="journal"] {
@@ -124,7 +124,7 @@ button {
   --panel-rgb: 247, 248, 249;
   --line: rgba(var(--accent-rgb), 0.12);
   --fine-line: rgba(var(--accent-rgb), 0.05);
-  --muted: #70747a;
+  --muted: #5b6067;
 }
 
 .mini-app[data-skin="pixel"] {
@@ -5153,6 +5153,73 @@ textarea,
 .pixel-dashboard,
 .archive-date-display strong {
   font-family: var(--font-ui) !important;
+}
+
+/* Readability guardrails for secondary, completed and disabled states */
+.skin-menu small,
+.skin-menu em {
+  opacity: 0.8;
+}
+
+.week-navigator > button:disabled:not(.week-range-summary),
+.archive-year-options button:disabled,
+.archive-month-options button:disabled,
+.archive-day-options button:disabled {
+  border-color: var(--line);
+  background: var(--paper-deep);
+  color: var(--muted);
+  opacity: 1;
+}
+
+.submit-task:disabled {
+  border-color: var(--muted);
+  background: var(--muted);
+  color: white;
+  opacity: 1;
+}
+
+.task-card.is-done .task-copy strong,
+.cycle-item.is-done .cycle-item-copy strong {
+  color: #596274;
+}
+
+.mini-app[data-skin="industrial"] .industrial-brand small,
+.mini-app[data-skin="industrial"] .industrial-period span,
+.mini-app[data-skin="industrial"] .industrial-landing p,
+.mini-app[data-skin="industrial"] .industrial-progress-block p {
+  color: #666666;
+}
+
+.mini-app[data-skin="journal"] .journal-topbar > div:first-child small,
+.mini-app[data-skin="journal"] .journal-week span,
+.mini-app[data-skin="journal"] .journal-heading p {
+  color: #5b6067;
+}
+
+.mini-app[data-skin="journal"] .journal-dashboard small,
+.mini-app[data-skin="journal"] .journal-dashboard p {
+  color: #0d533f;
+}
+
+.mini-app[data-skin="journal"] .task-card:nth-child(2) {
+  color: #4d0f30;
+}
+
+.mini-app[data-skin="journal"] .task-copy > span,
+.mini-app[data-skin="journal"] .task-meta small,
+.mini-app[data-skin="journal"] .task-meta strong,
+.mini-app[data-skin="journal"] .task-progress-note {
+  opacity: 1;
+}
+
+.mini-app[data-skin="journal"] .task-card.is-done,
+.mini-app[data-skin="journal"] .task-card.is-done:first-child,
+.mini-app[data-skin="journal"] .task-card.is-done:nth-child(2) {
+  color: #51565d;
+}
+
+.mini-app[data-skin="journal"] .task-card.is-done .task-copy strong {
+  color: #51565d;
 }
 
 @keyframes fade-in {
