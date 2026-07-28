@@ -118,17 +118,17 @@ button {
 }
 
 .mini-app[data-skin="pixel"] {
-  --blue: #153f28;
-  --blue-dark: #082617;
-  --accent-rgb: 21, 63, 40;
+  --blue: #173f27;
+  --blue-dark: #082718;
+  --accent-rgb: 23, 63, 39;
   --ink: #07190e;
-  --paper: #d3e7d8;
-  --paper-deep: #a9c7ae;
-  --paper-rgb: 211, 231, 216;
-  --panel-rgb: 190, 216, 197;
-  --line: rgba(var(--accent-rgb), 0.42);
-  --fine-line: rgba(var(--accent-rgb), 0.2);
-  --muted: #456451;
+  --paper: #d6e3d5;
+  --paper-deep: #a9c39f;
+  --paper-rgb: 214, 227, 213;
+  --panel-rgb: 195, 216, 199;
+  --line: rgba(8, 39, 24, 0.28);
+  --fine-line: rgba(8, 39, 24, 0.16);
+  --muted: #496451;
 }
 
 .app-header {
@@ -4094,6 +4094,352 @@ button {
 .mini-app[data-skin="industrial"] .task-modal input,
 .mini-app[data-skin="industrial"] .task-modal select {
   background: #e9e9e6;
+}
+
+/* Pixel garden — dense cross-stitch field based on the supplied reference */
+.mini-app[data-skin="pixel"] {
+  border: 1px solid #082718;
+  background:
+    linear-gradient(rgba(8, 39, 24, 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(8, 39, 24, 0.18) 1px, transparent 1px),
+    #c6d9c8;
+  background-size: 8px 8px;
+  box-shadow: 0 18px 50px rgba(8, 39, 24, 0.18);
+}
+
+.mini-app[data-skin="pixel"] .pixel-topbar {
+  border-bottom: 1px solid #082718;
+  background:
+    linear-gradient(rgba(8, 39, 24, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(8, 39, 24, 0.12) 1px, transparent 1px),
+    #c5dee6;
+  background-size: 8px 8px;
+}
+
+.mini-app[data-skin="pixel"] .pixel-topbar .skin-switcher {
+  border: 1px solid #082718;
+  background: #edf1e8;
+  box-shadow: none;
+}
+
+.mini-app[data-skin="pixel"] .skin-menu {
+  border: 1px solid #082718;
+  background: #dce7dc;
+  box-shadow: 4px 4px 0 rgba(8, 39, 24, 0.72);
+}
+
+.mini-app[data-skin="pixel"] .skin-menu button {
+  border: 1px solid rgba(8, 39, 24, 0.28);
+  background: #edf1e8;
+}
+
+.mini-app[data-skin="pixel"] .pixel-landing {
+  position: relative;
+  min-height: 310px;
+  padding: 0;
+  border-bottom: 1px solid #082718;
+  background: #c5dee6;
+}
+
+.pixel-scene {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(36, 1fr);
+  grid-template-rows: repeat(18, 1fr);
+  overflow: hidden;
+  background: #c5dee6;
+}
+
+.pixel-scene .pixel-cell {
+  position: relative;
+  display: block;
+  min-width: 0;
+  min-height: 0;
+  border-right: 1px solid rgba(8, 39, 24, 0.16);
+  border-bottom: 1px solid rgba(8, 39, 24, 0.16);
+}
+
+.pixel-scene .pixel-cell::after {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: rgba(4, 20, 11, 0.78);
+  content: "·";
+  font: 700 7px/1 "Courier New", monospace;
+}
+
+.pixel-scene .pixel-cell.stitch::after {
+  content: "×";
+  font-size: 6px;
+}
+
+.pixel-scene .sky {
+  background: #c5dee6;
+}
+
+.pixel-scene .sky:nth-child(5n) {
+  background: #bad6df;
+}
+
+.pixel-scene .cloud {
+  background: #f1f1e8;
+}
+
+.pixel-scene .cloud::after {
+  content: "C";
+  font-size: 5px;
+}
+
+.pixel-scene .grass-light {
+  background: #a7c596;
+}
+
+.pixel-scene .grass-mid {
+  background: #678955;
+}
+
+.pixel-scene .grass-dark {
+  background: #315735;
+}
+
+.pixel-scene .grass-deep {
+  background: #173d27;
+}
+
+.pixel-scene .flower-yellow {
+  background: #f4c914;
+}
+
+.pixel-scene .flower-pink {
+  background: #ed4c6a;
+}
+
+.pixel-scene .flower-center {
+  background: #d91f3f;
+}
+
+.pixel-scene .flower-yellow::after,
+.pixel-scene .flower-pink::after,
+.pixel-scene .flower-center::after {
+  content: "×";
+  font-size: 6px;
+}
+
+.pixel-title-panel {
+  position: absolute;
+  z-index: 2;
+  right: 14px;
+  bottom: 14px;
+  left: 14px;
+  padding: 12px;
+  border: 1px solid #082718;
+  background:
+    linear-gradient(rgba(8, 39, 24, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(8, 39, 24, 0.08) 1px, transparent 1px),
+    rgba(239, 243, 234, 0.94);
+  background-size: 8px 8px;
+}
+
+.mini-app[data-skin="pixel"] .pixel-title-panel > p {
+  margin: 0;
+  color: #173d27;
+  font: 700 8px/1 "Courier New", monospace;
+  letter-spacing: 0.06em;
+}
+
+.mini-app[data-skin="pixel"] .pixel-title-panel h1 {
+  margin: 12px 0 14px;
+  color: #082718;
+  font: 900 clamp(38px, 10vw, 52px)/0.95 "Courier New", "PingFang SC",
+    monospace;
+  letter-spacing: -0.08em;
+  text-shadow: none;
+}
+
+.mini-app[data-skin="pixel"] .pixel-hero-status {
+  position: static;
+  display: flex;
+  padding: 7px 0 0;
+  border: 0;
+  border-top: 1px solid rgba(8, 39, 24, 0.42);
+  background: transparent;
+  box-shadow: none;
+}
+
+.mini-app[data-skin="pixel"] .pixel-dashboard {
+  grid-template-columns: minmax(0, 1fr) 132px;
+  gap: 8px;
+  padding: 8px;
+  border-bottom: 1px solid #082718;
+  background:
+    linear-gradient(rgba(8, 39, 24, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(8, 39, 24, 0.12) 1px, transparent 1px),
+    #a7c596;
+  background-size: 8px 8px;
+}
+
+.mini-app[data-skin="pixel"] .pixel-map {
+  border-top: 1px solid rgba(8, 39, 24, 0.54);
+  border-left: 1px solid rgba(8, 39, 24, 0.54);
+}
+
+.mini-app[data-skin="pixel"] .pixel-map i {
+  border-right: 1px solid rgba(8, 39, 24, 0.42);
+  border-bottom: 1px solid rgba(8, 39, 24, 0.42);
+}
+
+.mini-app[data-skin="pixel"] .pixel-dashboard > div:last-child {
+  border: 0;
+  background: #edf1e8;
+  box-shadow: none;
+}
+
+.mini-app[data-skin="pixel"] .week-navigator,
+.mini-app[data-skin="pixel"] .week-ruler {
+  margin: 0;
+  border: 0;
+  border-bottom: 1px solid #082718;
+  background: #c6d9c8;
+}
+
+.mini-app[data-skin="pixel"] .week-navigator > button,
+.mini-app[data-skin="pixel"] .week-ruler > button {
+  border-color: rgba(8, 39, 24, 0.28);
+}
+
+.mini-app[data-skin="pixel"] .week-ruler > button.current {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.14) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.14) 1px, transparent 1px),
+    #173d27;
+  background-size: 8px 8px;
+}
+
+.mini-app[data-skin="pixel"] .task-section {
+  padding: 8px;
+}
+
+.mini-app[data-skin="pixel"] .filter-heading {
+  padding: 8px 0 10px;
+}
+
+.mini-app[data-skin="pixel"] .filter-heading > div > span {
+  padding: 5px 7px;
+  background: #173d27;
+  color: #edf1e8;
+  font-size: 17px;
+}
+
+.mini-app[data-skin="pixel"] .add-inline {
+  border: 1px solid #082718;
+  background: #f4c914;
+  box-shadow: none;
+}
+
+.mini-app[data-skin="pixel"] .room-filters {
+  gap: 4px;
+  padding: 0 0 10px;
+}
+
+.mini-app[data-skin="pixel"] .room-filters button {
+  border: 1px solid rgba(8, 39, 24, 0.58);
+  background: #dce7dc;
+}
+
+.mini-app[data-skin="pixel"] .room-filters button.active {
+  background: #173d27;
+}
+
+.mini-app[data-skin="pixel"] .task-list {
+  gap: 5px;
+}
+
+.mini-app[data-skin="pixel"] .task-card {
+  min-height: 80px;
+  border: 1px solid rgba(8, 39, 24, 0.62);
+  background:
+    linear-gradient(rgba(8, 39, 24, 0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(8, 39, 24, 0.09) 1px, transparent 1px),
+    #dce7dc;
+  background-size: 8px 8px;
+  box-shadow: none;
+}
+
+.mini-app[data-skin="pixel"] .task-card.has-occurrences::before {
+  border-right: 1px solid rgba(8, 39, 24, 0.42);
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.14) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.14) 1px, transparent 1px),
+    #678955;
+  background-size: 8px 8px;
+}
+
+.mini-app[data-skin="pixel"] .checkmark,
+.mini-app[data-skin="pixel"] .task-progress-count {
+  border: 1px solid #082718;
+  background: #edf1e8;
+}
+
+.mini-app[data-skin="pixel"] .week-view,
+.mini-app[data-skin="pixel"] .archive-view {
+  padding: 5px;
+  background:
+    linear-gradient(rgba(8, 39, 24, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(8, 39, 24, 0.12) 1px, transparent 1px),
+    #a7c596;
+  background-size: 8px 8px;
+}
+
+.mini-app[data-skin="pixel"] .page-heading,
+.mini-app[data-skin="pixel"] .period-switch,
+.mini-app[data-skin="pixel"] .cycle-overview,
+.mini-app[data-skin="pixel"] .cycle-ruler,
+.mini-app[data-skin="pixel"] .cycle-list,
+.mini-app[data-skin="pixel"] .stat-grid,
+.mini-app[data-skin="pixel"] .room-index {
+  border: 1px solid rgba(8, 39, 24, 0.7);
+  background:
+    linear-gradient(rgba(8, 39, 24, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(8, 39, 24, 0.07) 1px, transparent 1px),
+    #dce7dc;
+  background-size: 8px 8px;
+  box-shadow: none;
+}
+
+.mini-app[data-skin="pixel"] .period-switch button,
+.mini-app[data-skin="pixel"] .cycle-ruler > div,
+.mini-app[data-skin="pixel"] .cycle-item,
+.mini-app[data-skin="pixel"] .stat-grid article,
+.mini-app[data-skin="pixel"] .index-row > * {
+  border-color: rgba(8, 39, 24, 0.28);
+}
+
+.mini-app[data-skin="pixel"] .bottom-nav {
+  right: 5px;
+  bottom: 5px;
+  left: 5px;
+  border: 1px solid #082718;
+  background:
+    linear-gradient(rgba(8, 39, 24, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(8, 39, 24, 0.08) 1px, transparent 1px),
+    #dce7dc;
+  background-size: 8px 8px;
+  box-shadow: none;
+}
+
+.mini-app[data-skin="pixel"] .bottom-nav button {
+  border-right: 1px solid rgba(8, 39, 24, 0.32);
+}
+
+.mini-app[data-skin="pixel"] .task-modal {
+  border-top: 1px solid #082718;
+  background:
+    linear-gradient(rgba(8, 39, 24, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(8, 39, 24, 0.08) 1px, transparent 1px),
+    #dce7dc;
+  background-size: 8px 8px;
 }
 
 @keyframes fade-in {

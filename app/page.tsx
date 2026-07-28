@@ -159,6 +159,92 @@ const firstWeekStart = "2025-12-29";
 const lastWeekStart = "2026-12-28";
 const longTermYears = [2026, 2027];
 const yearMonths = Array.from({ length: 12 }, (_, index) => index + 1);
+const pixelSceneColumns = 36;
+const pixelSceneRows = 18;
+const yellowPixelFlowers = new Set([
+  "7-10",
+  "8-9",
+  "8-10",
+  "8-11",
+  "9-10",
+  "14-9",
+  "15-8",
+  "15-9",
+  "15-10",
+  "16-9",
+  "28-12",
+  "29-11",
+  "29-12",
+  "29-13",
+  "30-12",
+]);
+const pinkPixelFlowers = new Set([
+  "20-10",
+  "21-9",
+  "21-10",
+  "21-11",
+  "22-10",
+  "11-14",
+  "12-13",
+  "12-14",
+  "12-15",
+  "13-14",
+  "25-15",
+  "26-14",
+  "26-15",
+  "26-16",
+  "27-15",
+]);
+const flowerCenters = new Set([
+  "8-10",
+  "15-9",
+  "21-10",
+  "12-14",
+  "26-15",
+  "29-12",
+]);
+
+function getPixelSceneCell(index: number) {
+  const column = index % pixelSceneColumns;
+  const row = Math.floor(index / pixelSceneColumns);
+  const key = `${column}-${row}`;
+  const horizon =
+    6 + Math.round(Math.sin(column * 0.42) * 1.45) + (column % 11 === 0 ? 1 : 0);
+  const hash = (column * 17 + row * 29 + column * row * 3) % 19;
+
+  if (yellowPixelFlowers.has(key)) {
+    return flowerCenters.has(key)
+      ? "pixel-cell flower-center"
+      : "pixel-cell flower-yellow";
+  }
+  if (pinkPixelFlowers.has(key)) {
+    return flowerCenters.has(key)
+      ? "pixel-cell flower-center"
+      : "pixel-cell flower-pink";
+  }
+  if (row < horizon) {
+    const cloud =
+      (row === 2 && column >= 4 && column <= 8) ||
+      (row === 3 && column >= 18 && column <= 22) ||
+      (row === 1 && column >= 29 && column <= 32);
+    return `pixel-cell ${cloud ? "cloud" : "sky"} ${
+      hash === 0 || hash === 7 ? "stitch" : ""
+    }`;
+  }
+
+  const depth = row - horizon;
+  const grassTone =
+    depth > 7
+      ? hash < 9
+        ? "grass-deep"
+        : "grass-dark"
+      : hash < 5
+        ? "grass-light"
+        : hash < 12
+          ? "grass-mid"
+          : "grass-dark";
+  return `pixel-cell ${grassTone} ${hash === 2 || hash === 13 ? "stitch" : ""}`;
+}
 
 function parseDateKey(dateKey: string) {
   const [year, month, day] = dateKey.split("-").map(Number);
@@ -990,18 +1076,23 @@ export default function Home() {
             {skinPicker}
           </div>
           <div className="pixel-landing">
-            <div className="pixel-sky" aria-hidden="true">
-              <i />
-              <i />
-              <i />
+            <div className="pixel-scene" aria-hidden="true">
+              {Array.from(
+                { length: pixelSceneColumns * pixelSceneRows },
+                (_, index) => (
+                  <i className={getPixelSceneCell(index)} key={index} />
+                ),
+              )}
             </div>
-            <p>任务种植区 / {selectedDateHeading}</p>
-            <h1>{pageTitle}</h1>
-            <div className="pixel-hero-status">
-              <span>存档 {selectedDayMeta.dateKey.replaceAll("-", ".")}</span>
-              <span>
-                成长 {doneCount}/{selectedDayTasks.length}
-              </span>
+            <div className="pixel-title-panel">
+              <p>任务种植区 / {selectedDateHeading}</p>
+              <h1>{pageTitle}</h1>
+              <div className="pixel-hero-status">
+                <span>存档 {selectedDayMeta.dateKey.replaceAll("-", ".")}</span>
+                <span>
+                  成长 {doneCount}/{selectedDayTasks.length}
+                </span>
+              </div>
             </div>
           </div>
         </>
