@@ -79,7 +79,7 @@ button {
 .technical-strip {
   display: grid;
   grid-template-columns: 1fr 1.15fr 0.9fr;
-  min-height: 58px;
+  min-height: 82px;
   border-bottom: 1px solid var(--blue);
   background: rgba(241, 241, 239, 0.94);
 }
