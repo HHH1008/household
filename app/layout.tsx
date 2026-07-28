@@ -3,7 +3,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "家务档案｜家庭维护打卡",
-  description: "蓝图档案风格的中文家务计划、打卡与维护记录小程序。",
+  description:
+    "支持四套独立视觉模式的中文家务计划、打卡与家庭维护记录小程序。",
 };
 
 export const viewport: Viewport = {

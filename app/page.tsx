@@ -484,6 +484,10 @@ export default function Home() {
       completed.includes(getCompletionKey(selectedDayMeta.dateKey, task.id)),
     )
     .reduce((sum, task) => sum + task.estimate, 0);
+  const remainingMinutes = Math.max(totalMinutes - finishedMinutes, 0);
+  const priorityCount = selectedDayTasks.filter(
+    (task) => task.priority,
+  ).length;
   const annualWeekNumber = getIsoWeekNumber(
     selectedDayMeta.year,
     selectedDayMeta.month,
@@ -818,6 +822,277 @@ export default function Home() {
     </div>
   );
 
+  const skinPicker = (
+    <div className="skin-picker">
+      <button
+        aria-controls="skin-menu"
+        aria-expanded={isSkinMenuOpen}
+        aria-haspopup="listbox"
+        aria-label={`当前为${skins.find((item) => item.id === skin)?.label}皮肤，打开皮肤菜单`}
+        className="skin-switcher"
+        onClick={() => setIsSkinMenuOpen((current) => !current)}
+        type="button"
+      >
+        <i aria-hidden="true" />
+        <span>皮肤 · {skins.find((item) => item.id === skin)?.label}</span>
+        <b aria-hidden="true">{isSkinMenuOpen ? "↑" : "↓"}</b>
+      </button>
+      {isSkinMenuOpen && (
+        <>
+          <button
+            aria-label="关闭皮肤菜单"
+            className="skin-menu-scrim"
+            onClick={() => setIsSkinMenuOpen(false)}
+            type="button"
+          />
+          <ul
+            aria-label="选择页面皮肤"
+            className="skin-menu"
+            id="skin-menu"
+            role="listbox"
+          >
+            {skins.map((item, index) => (
+              <li key={item.id}>
+                <button
+                  aria-selected={skin === item.id}
+                  className={skin === item.id ? "active" : ""}
+                  onClick={() => selectSkin(item.id)}
+                  role="option"
+                  type="button"
+                >
+                  <i
+                    aria-hidden="true"
+                    className={`skin-preview skin-preview-${item.id}`}
+                  />
+                  <span>
+                    <small>{String(index + 1).padStart(2, "0")}</small>
+                    <strong>{item.label}</strong>
+                    <em>{item.description}</em>
+                  </span>
+                  <b aria-hidden="true">{skin === item.id ? "✓" : "→"}</b>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </div>
+  );
+
+  const skinHeader = (
+    <header className={`app-header app-header-${skin}`}>
+      {skin === "imagine" && (
+        <>
+          <div className="imagine-topbar">
+            <div>
+              <strong>家务想象局</strong>
+              <small>HOUSEWORK LAB</small>
+            </div>
+            {skinPicker}
+          </div>
+          <div className="imagine-landing">
+            <span className="imagine-orbit imagine-orbit-eye" aria-hidden="true">
+              ◉
+            </span>
+            <span
+              className="imagine-orbit imagine-orbit-flower"
+              aria-hidden="true"
+            >
+              ✿
+            </span>
+            <span
+              className="imagine-orbit imagine-orbit-dot"
+              aria-hidden="true"
+            >
+              ●
+            </span>
+            <p>
+              {selectedDateHeading} / W
+              {String(annualWeekNumber).padStart(2, "0")}
+            </p>
+            <h1>
+              {pageTitle}
+              <b>。</b>
+            </h1>
+            <small>
+              {doneCount}/{selectedDayTasks.length} 项完成 ·
+              把今天变成轻松的一格
+            </small>
+          </div>
+        </>
+      )}
+
+      {skin === "industrial" && (
+        <>
+          <div className="industrial-masthead">
+            <div className="industrial-brand">
+              <b>HA / 2026</b>
+              <small>家庭维护工作台</small>
+            </div>
+            <div className="industrial-period">
+              <span>W{String(annualWeekNumber).padStart(2, "0")}</span>
+              <strong>{selectedDateHeading}</strong>
+            </div>
+            {skinPicker}
+          </div>
+          <div className="industrial-landing">
+            <div>
+              <p>COMPUTATIONAL HOUSEKEEPING / SYSTEM ACTIVE</p>
+              <h1>{pageTitle}</h1>
+            </div>
+            <div className="industrial-hero-stat">
+              <strong>{String(progress).padStart(2, "0")}</strong>
+              <span>% / OPERATION PROGRESS</span>
+            </div>
+          </div>
+        </>
+      )}
+
+      {skin === "journal" && (
+        <>
+          <div className="journal-topbar">
+            <div>
+              <strong>
+                {selectedDayMeta.month}月{selectedDayMeta.date}日 周{selectedDay}
+              </strong>
+              <small>每日概览</small>
+            </div>
+            {skinPicker}
+          </div>
+          <div className="journal-landing">
+            <div className="journal-week">
+              <strong>{String(annualWeekNumber).padStart(2, "0")}</strong>
+              <span>年度周</span>
+            </div>
+            <div className="journal-heading">
+              <span>连续记录 · 06 天</span>
+              <h1>{pageTitle}</h1>
+              <p>
+                ✓ {doneCount}/{selectedDayTasks.length} 个任务 · 进度 {progress}%
+              </p>
+            </div>
+            <div className="journal-micro-grid" aria-hidden="true">
+              {Array.from({ length: 28 }, (_, index) => (
+                <i
+                  className={index < Math.round((progress / 100) * 28) ? "on" : ""}
+                  key={index}
+                />
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {skin === "pixel" && (
+        <>
+          <div className="pixel-topbar">
+            <div>
+              <span>HOUSEHOLD_GARDEN.EXE</span>
+              <strong>W{String(annualWeekNumber).padStart(2, "0")}</strong>
+            </div>
+            {skinPicker}
+          </div>
+          <div className="pixel-landing">
+            <div className="pixel-sky" aria-hidden="true">
+              <i />
+              <i />
+              <i />
+            </div>
+            <p>任务种植区 / {selectedDateHeading}</p>
+            <h1>{pageTitle}</h1>
+            <div className="pixel-hero-status">
+              <span>存档 {selectedDayMeta.dateKey.replaceAll("-", ".")}</span>
+              <span>
+                成长 {doneCount}/{selectedDayTasks.length}
+              </span>
+            </div>
+          </div>
+        </>
+      )}
+    </header>
+  );
+
+  const todayDashboard =
+    skin === "imagine" ? (
+      <section className="skin-dashboard imagine-dashboard" aria-label="今日概览">
+        <article>
+          <small>今日进度</small>
+          <strong>{progress}%</strong>
+          <span>完成一点，也算向前</span>
+        </article>
+        <article>
+          <small>剩余时间</small>
+          <strong>{remainingMinutes}</strong>
+          <span>MIN / 分钟</span>
+        </article>
+        <article>
+          <small>先做这个</small>
+          <strong>{priorityCount}</strong>
+          <span>项优先任务</span>
+        </article>
+      </section>
+    ) : skin === "industrial" ? (
+      <section
+        className="skin-dashboard industrial-dashboard"
+        aria-label="今日概览"
+      >
+        <div className="industrial-progress-block">
+          <span>01 / EXECUTION</span>
+          <strong>
+            {doneCount}
+            <small>/{selectedDayTasks.length}</small>
+          </strong>
+          <p>已完成任务</p>
+        </div>
+        <div className="industrial-metrics">
+          <article>
+            <span>预计剩余</span>
+            <strong>{remainingMinutes}&apos;</strong>
+          </article>
+          <article>
+            <span>优先处理</span>
+            <strong>{String(priorityCount).padStart(2, "0")}</strong>
+          </article>
+          <div className="industrial-meter">
+            <i style={{ width: `${progress}%` }} />
+          </div>
+        </div>
+      </section>
+    ) : skin === "journal" ? (
+      <section className="skin-dashboard journal-dashboard" aria-label="今日概览">
+        <div>
+          <small>今天的微目标</small>
+          <strong>让家里轻一点</strong>
+          <p>预计还需 {remainingMinutes} 分钟，优先处理 {priorityCount} 项</p>
+        </div>
+        <span className="journal-completion">
+          <b>{doneCount}</b> / {selectedDayTasks.length}
+        </span>
+      </section>
+    ) : (
+      <section className="skin-dashboard pixel-dashboard" aria-label="今日概览">
+        <div className="pixel-map" aria-hidden="true">
+          {Array.from({ length: 40 }, (_, index) => (
+            <i
+              className={
+                index < Math.round((progress / 100) * 40)
+                  ? index % 9 === 0
+                    ? "flower"
+                    : "grown"
+                  : ""
+              }
+              key={index}
+            />
+          ))}
+        </div>
+        <div>
+          <span>GARDEN_STATUS</span>
+          <strong>{progress}% 已生长</strong>
+          <small>剩余 {remainingMinutes} 分钟</small>
+        </div>
+      </section>
+    );
+
   return (
     <main className="blueprint-shell">
       <section
@@ -826,138 +1101,12 @@ export default function Home() {
         aria-label="家务档案小程序"
         ref={appScrollRef}
       >
-        <header className="app-header">
-          <div className="technical-strip">
-            <div>
-              <span>档案编号</span>
-              <strong>
-                H.A—{selectedDayMeta.year}—
-                {String(selectedDayMeta.month).padStart(2, "0")}
-              </strong>
-            </div>
-            <div>
-              <span>年度周次</span>
-              <strong>
-                第 {String(annualWeekNumber).padStart(2, "0")} 周 / 周
-                {selectedDay}
-              </strong>
-            </div>
-            <div className="skin-cell">
-              <span>更新日期</span>
-              <strong>
-                {String(selectedDayMeta.month).padStart(2, "0")}.
-                {selectedDayMeta.date}.{selectedDayMeta.year}
-              </strong>
-              <button
-                aria-controls="skin-menu"
-                aria-expanded={isSkinMenuOpen}
-                aria-haspopup="listbox"
-                aria-label={`当前为${skins.find((item) => item.id === skin)?.label}皮肤，打开皮肤菜单`}
-                className="skin-switcher"
-                onClick={() => setIsSkinMenuOpen((current) => !current)}
-                type="button"
-              >
-                <i aria-hidden="true" />
-                <span>
-                  皮肤 · {skins.find((item) => item.id === skin)?.label}
-                </span>
-                <b aria-hidden="true">{isSkinMenuOpen ? "↑" : "↓"}</b>
-              </button>
-              {isSkinMenuOpen && (
-                <>
-                  <button
-                    aria-label="关闭皮肤菜单"
-                    className="skin-menu-scrim"
-                    onClick={() => setIsSkinMenuOpen(false)}
-                    type="button"
-                  />
-                  <ul
-                    aria-label="选择页面皮肤"
-                    className="skin-menu"
-                    id="skin-menu"
-                    role="listbox"
-                  >
-                    {skins.map((item, index) => (
-                      <li key={item.id}>
-                        <button
-                          aria-selected={skin === item.id}
-                          className={skin === item.id ? "active" : ""}
-                          onClick={() => selectSkin(item.id)}
-                          role="option"
-                          type="button"
-                        >
-                          <i
-                            aria-hidden="true"
-                            className={`skin-preview skin-preview-${item.id}`}
-                          />
-                          <span>
-                            <small>
-                              {String(index + 1).padStart(2, "0")}
-                            </small>
-                            <strong>{item.label}</strong>
-                            <em>{item.description}</em>
-                          </span>
-                          <b aria-hidden="true">
-                            {skin === item.id ? "✓" : "→"}
-                          </b>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              )}
-            </div>
-          </div>
-
-          <div className="hero-title">
-            <p>HOUSEHOLD ARCHIVE / 家庭维护系统</p>
-            <h1>{pageTitle}</h1>
-            <div className="title-footer">
-              <span>ARCHIVE_VOL.01</span>
-              <span>GRID UNIT: 10MM</span>
-            </div>
-          </div>
-        </header>
+        {skinHeader}
 
         <div className="content-frame">
           {activeTab === "today" && (
             <>
-              <section className="today-overview" aria-labelledby="today-title">
-                <div
-                  className="progress-dial"
-                  style={{
-                    background: `conic-gradient(var(--blue) ${progress}%, rgba(var(--accent-rgb), 0.12) ${progress}% 100%)`,
-                  }}
-                  aria-label={`${pageTitle}进度 ${progress}%`}
-                >
-                  <div>
-                    <strong>
-                      {doneCount}
-                      <small>/{selectedDayTasks.length}</small>
-                    </strong>
-                    <span>已完成</span>
-                  </div>
-                </div>
-                <div className="overview-copy">
-                  <div className="section-kicker">
-                    <span>01</span>
-                    <p>
-                      {isActualToday
-                        ? "TODAY'S OPERATION"
-                        : "SELECTED DAY OPERATION"}
-                    </p>
-                  </div>
-                  <h2 id="today-title">{selectedDateHeading}</h2>
-                  <p>
-                    预计剩余 {Math.max(totalMinutes - finishedMinutes, 0)} 分钟
-                    · 优先处理{" "}
-                    {selectedDayTasks.filter((task) => task.priority).length} 项
-                  </p>
-                  <div className="progress-line">
-                    <i style={{ width: `${progress}%` }} />
-                  </div>
-                </div>
-              </section>
+              {todayDashboard}
 
               {weekNavigator}
 
