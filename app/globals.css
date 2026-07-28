@@ -13,6 +13,7 @@
   --safe-right: env(safe-area-inset-right, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
+  --top-shell-inset: 0px;
   --bottom-nav-height: 70px;
 }
 
@@ -1755,6 +1756,10 @@ button {
 }
 
 @media (max-width: 560px) {
+  :root {
+    --top-shell-inset: max(var(--safe-top), 24px);
+  }
+
   html,
   body {
     width: 100%;
@@ -1785,7 +1790,7 @@ button {
     box-shadow: none;
     overscroll-behavior-y: contain;
     scroll-behavior: smooth;
-    scroll-padding-top: calc(var(--safe-top) + 12px);
+    scroll-padding-top: calc(var(--top-shell-inset) + 12px);
     scroll-padding-bottom: calc(
       var(--bottom-nav-height) + var(--safe-bottom) + 20px
     );
@@ -1797,8 +1802,9 @@ button {
     display: none;
   }
 
-  .app-header {
-    padding-top: var(--safe-top);
+  .technical-strip {
+    min-height: calc(58px + var(--top-shell-inset));
+    padding-top: var(--top-shell-inset);
   }
 
   .content-frame {
