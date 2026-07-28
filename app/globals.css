@@ -83,6 +83,7 @@ button {
 }
 
 .mini-app[data-skin="imagine"] {
+  --font-heading: var(--font-title);
   --blue: #123fc8;
   --blue-dark: #0a2b9d;
   --accent-rgb: 18, 63, 200;
@@ -97,6 +98,7 @@ button {
 }
 
 .mini-app[data-skin="industrial"] {
+  --font-heading: var(--font-ui);
   --blue: #111111;
   --blue-dark: #000000;
   --accent-rgb: 17, 17, 17;
@@ -111,6 +113,7 @@ button {
 }
 
 .mini-app[data-skin="journal"] {
+  --font-heading: var(--font-ui);
   --blue: #171719;
   --blue-dark: #000000;
   --accent-rgb: 23, 23, 25;
@@ -125,6 +128,7 @@ button {
 }
 
 .mini-app[data-skin="pixel"] {
+  --font-heading: var(--font-ui);
   --blue: #173f27;
   --blue-dark: #082718;
   --accent-rgb: 23, 63, 39;
@@ -5106,8 +5110,11 @@ textarea,
 .page-heading h2,
 .filter-heading > div > span,
 .cycle-copy h3,
-.modal-head h2,
-.journal-heading > span {
+.modal-head h2 {
+  font-family: var(--font-heading, var(--font-ui)) !important;
+}
+
+.mini-app[data-skin="journal"] .journal-heading > span {
   font-family: var(--font-title) !important;
 }
 
