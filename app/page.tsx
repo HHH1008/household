@@ -13,6 +13,7 @@ import {
 type Room = "全部" | "客厅" | "厨房" | "卧室" | "卫生间" | "阳台";
 type Tab = "today" | "week" | "archive";
 type PlanPeriod = "week" | "quarter" | "half";
+type Skin = "blueprint" | "warm" | "forest";
 type WeekDay = "一" | "二" | "三" | "四" | "五" | "六" | "日";
 type CalendarDay = {
   day: WeekDay;
@@ -141,6 +142,11 @@ const baseTasks: Task[] = [
 ];
 
 const rooms: Room[] = ["全部", "客厅", "厨房", "卧室", "卫生间", "阳台"];
+const skins: Array<{ id: Skin; label: string }> = [
+  { id: "blueprint", label: "蓝图" },
+  { id: "warm", label: "暖纸" },
+  { id: "forest", label: "墨绿" },
+];
 const allWeekDays: WeekDay[] = ["一", "二", "三", "四", "五", "六", "日"];
 const appTodayKey = "2026-08-07";
 const appCurrentWeekStart = "2026-08-03";
@@ -369,6 +375,7 @@ export default function Home() {
   const appScrollRef = useRef<HTMLElement>(null);
   const [activeTab, setActiveTab] = useState<Tab>("today");
   const [planPeriod, setPlanPeriod] = useState<PlanPeriod>("week");
+  const [skin, setSkin] = useState<Skin>("blueprint");
   const [selectedWeekStart, setSelectedWeekStart] = useState(
     appCurrentWeekStart,
   );
@@ -406,6 +413,10 @@ export default function Home() {
         "household-archive-cycle-done",
       );
       if (savedCycle) setCycleCompleted(JSON.parse(savedCycle));
+      const savedSkin = window.localStorage.getItem("household-archive-skin");
+      if (skins.some((item) => item.id === savedSkin)) {
+        setSkin(savedSkin as Skin);
+      }
       setCustomTasks(readStoredTasks());
     } catch {
       // The app remains fully usable when browser storage is unavailable.
@@ -581,6 +592,15 @@ export default function Home() {
   function goToCurrentWeek() {
     setSelectedWeekStart(appCurrentWeekStart);
     setSelectedDay("五");
+  }
+
+  function cycleSkin() {
+    const currentIndex = skins.findIndex((item) => item.id === skin);
+    const nextSkin = skins[(currentIndex + 1) % skins.length];
+    setSkin(nextSkin.id);
+    window.localStorage.setItem("household-archive-skin", nextSkin.id);
+    setNotice(`已切换为${nextSkin.label}皮肤`);
+    window.setTimeout(() => setNotice(""), 1800);
   }
 
   function openToday() {
@@ -779,6 +799,7 @@ export default function Home() {
     <main className="blueprint-shell">
       <section
         className="mini-app"
+        data-skin={skin}
         aria-label="家务档案小程序"
         ref={appScrollRef}
       >
@@ -804,6 +825,17 @@ export default function Home() {
                 {String(selectedDayMeta.month).padStart(2, "0")}.
                 {selectedDayMeta.date}.{selectedDayMeta.year}
               </strong>
+              <button
+                aria-label={`当前为${skins.find((item) => item.id === skin)?.label}皮肤，轻点切换`}
+                className="skin-switcher"
+                onClick={cycleSkin}
+                type="button"
+              >
+                <i aria-hidden="true" />
+                <span>
+                  皮肤 · {skins.find((item) => item.id === skin)?.label}
+                </span>
+              </button>
             </div>
           </div>
 
@@ -824,7 +856,7 @@ export default function Home() {
                 <div
                   className="progress-dial"
                   style={{
-                    background: `conic-gradient(var(--blue) ${progress}%, #dfe4f5 ${progress}% 100%)`,
+                    background: `conic-gradient(var(--blue) ${progress}%, rgba(var(--accent-rgb), 0.12) ${progress}% 100%)`,
                   }}
                   aria-label={`${pageTitle}进度 ${progress}%`}
                 >

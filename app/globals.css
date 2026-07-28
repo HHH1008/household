@@ -3,11 +3,14 @@
 :root {
   --blue: #123fc8;
   --blue-dark: #0a2b9d;
+  --accent-rgb: 18, 63, 200;
   --ink: #0c1730;
   --paper: #f4f4f1;
   --paper-deep: #e9ebed;
-  --line: rgba(18, 63, 200, 0.26);
-  --fine-line: rgba(18, 63, 200, 0.11);
+  --paper-rgb: 244, 244, 241;
+  --panel-rgb: 241, 241, 239;
+  --line: rgba(var(--accent-rgb), 0.26);
+  --fine-line: rgba(var(--accent-rgb), 0.11);
   --muted: #65708a;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
@@ -28,8 +31,8 @@ html {
 body {
   margin: 0;
   background:
-    linear-gradient(rgba(18, 63, 200, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(18, 63, 200, 0.08) 1px, transparent 1px),
+    linear-gradient(rgba(var(--accent-rgb), 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--accent-rgb), 0.08) 1px, transparent 1px),
     #e9ebee;
   background-size: 32px 32px;
   color: var(--ink);
@@ -72,6 +75,34 @@ button {
   box-shadow: 0 18px 60px rgba(12, 23, 48, 0.18);
 }
 
+.mini-app[data-skin="warm"] {
+  --blue: #bd4a1e;
+  --blue-dark: #873110;
+  --accent-rgb: 189, 74, 30;
+  --ink: #32180e;
+  --paper: #f7efdf;
+  --paper-deep: #eadbc3;
+  --paper-rgb: 247, 239, 223;
+  --panel-rgb: 247, 239, 223;
+  --line: rgba(var(--accent-rgb), 0.28);
+  --fine-line: rgba(var(--accent-rgb), 0.12);
+  --muted: #7a6555;
+}
+
+.mini-app[data-skin="forest"] {
+  --blue: #256749;
+  --blue-dark: #164832;
+  --accent-rgb: 37, 103, 73;
+  --ink: #15261e;
+  --paper: #edf2e9;
+  --paper-deep: #dce6d8;
+  --paper-rgb: 237, 242, 233;
+  --panel-rgb: 237, 242, 233;
+  --line: rgba(var(--accent-rgb), 0.28);
+  --fine-line: rgba(var(--accent-rgb), 0.12);
+  --muted: #607268;
+}
+
 .app-header {
   border-bottom: 1px solid var(--blue);
 }
@@ -81,7 +112,7 @@ button {
   grid-template-columns: 1fr 1.15fr 0.9fr;
   min-height: 82px;
   border-bottom: 1px solid var(--blue);
-  background: rgba(241, 241, 239, 0.94);
+  background: rgba(var(--panel-rgb), 0.94);
 }
 
 .technical-strip div {
@@ -117,24 +148,56 @@ button {
   letter-spacing: 0.02em;
 }
 
+.skin-switcher {
+  display: flex;
+  min-height: 28px;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 7px;
+  padding: 4px 0 4px 6px;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: transparent;
+  color: var(--blue);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.skin-switcher i {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 auto;
+  border: 1px solid var(--blue);
+  border-radius: 50%;
+  background: var(--blue);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.1);
+}
+
+.technical-strip .skin-switcher span {
+  margin: 0;
+  font: 700 8px/1 "Courier New", monospace;
+  letter-spacing: 0.02em;
+}
+
 .hero-title {
   position: relative;
   min-height: 178px;
   padding: 18px 16px 8px;
   overflow: hidden;
   background:
-    linear-gradient(rgba(18, 63, 200, 0.26) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(18, 63, 200, 0.26) 1px, transparent 1px),
-    linear-gradient(rgba(18, 63, 200, 0.09) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(18, 63, 200, 0.09) 1px, transparent 1px),
+    linear-gradient(rgba(var(--accent-rgb), 0.26) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--accent-rgb), 0.26) 1px, transparent 1px),
+    linear-gradient(rgba(var(--accent-rgb), 0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--accent-rgb), 0.09) 1px, transparent 1px),
     linear-gradient(
       45deg,
       transparent 49.7%,
-      rgba(18, 63, 200, 0.075) 49.85%,
-      rgba(18, 63, 200, 0.075) 50.15%,
+      rgba(var(--accent-rgb), 0.075) 49.85%,
+      rgba(var(--accent-rgb), 0.075) 50.15%,
       transparent 50.3%
     ),
-    #f6f6f2;
+    var(--paper);
   background-position:
     -1px -1px,
     -1px -1px,
@@ -210,7 +273,7 @@ button {
   align-items: center;
   padding: 22px 16px;
   border-bottom: 1px solid var(--blue);
-  background: rgba(244, 244, 241, 0.84);
+  background: rgba(var(--paper-rgb), 0.84);
 }
 
 .progress-dial {
@@ -310,7 +373,7 @@ button {
   grid-template-columns: 82px 1fr 82px;
   min-height: 72px;
   border-bottom: 1px solid var(--blue);
-  background: rgba(244, 244, 241, 0.96);
+  background: rgba(var(--paper-rgb), 0.96);
 }
 
 .week-navigator > button {
@@ -343,7 +406,7 @@ button {
 }
 
 .week-navigator > button:disabled:not(.week-range-summary) {
-  color: rgba(18, 63, 200, 0.22);
+  color: rgba(var(--accent-rgb), 0.22);
   cursor: not-allowed;
 }
 
@@ -373,7 +436,7 @@ button {
 }
 
 .week-range-summary:not(:disabled) {
-  background: rgba(18, 63, 200, 0.06);
+  background: rgba(var(--accent-rgb), 0.06);
 }
 
 .week-range-summary:disabled {
@@ -385,7 +448,7 @@ button {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   border-bottom: 1px solid var(--blue);
-  background: rgba(241, 242, 241, 0.94);
+  background: rgba(var(--panel-rgb), 0.94);
 }
 
 .week-ruler > button {
@@ -427,7 +490,7 @@ button {
 }
 
 .week-ruler em.complete {
-  background: rgba(18, 63, 200, 0.12);
+  background: rgba(var(--accent-rgb), 0.12);
 }
 
 .week-ruler .current {
@@ -446,7 +509,7 @@ button {
 }
 
 .task-section {
-  background: rgba(244, 244, 241, 0.8);
+  background: rgba(var(--paper-rgb), 0.8);
 }
 
 .filter-heading {
@@ -524,18 +587,18 @@ button {
   min-height: 76px;
   padding: 10px 15px 10px 10px;
   border-bottom: 1px solid var(--line);
-  background: rgba(244, 244, 241, 0.72);
+  background: rgba(var(--paper-rgb), 0.72);
   cursor: pointer;
   touch-action: manipulation;
   transition: background 160ms ease;
 }
 
 .task-card:hover {
-  background: #eef0f5;
+  background: var(--paper-deep);
 }
 
 .task-card:active {
-  background: #e4e8f2;
+  background: var(--paper-deep);
 }
 
 .task-card:focus-visible {
@@ -555,23 +618,23 @@ button {
   z-index: -1;
   inset: 0 auto 0 0;
   width: var(--task-progress, 0%);
-  border-right: 1px solid rgba(18, 63, 200, 0.42);
+  border-right: 1px solid rgba(var(--accent-rgb), 0.42);
   background:
     repeating-linear-gradient(
       -45deg,
       transparent,
       transparent 8px,
-      rgba(18, 63, 200, 0.035) 8px,
-      rgba(18, 63, 200, 0.035) 9px
+      rgba(var(--accent-rgb), 0.035) 8px,
+      rgba(var(--accent-rgb), 0.035) 9px
     ),
-    rgba(18, 63, 200, 0.14);
+    rgba(var(--accent-rgb), 0.14);
   content: "";
   pointer-events: none;
   transition: width 240ms ease;
 }
 
 .task-card.has-occurrences:active {
-  background: #e4e8f2;
+  background: var(--paper-deep);
 }
 
 .task-index {
@@ -608,7 +671,7 @@ button {
   justify-content: center;
   justify-self: center;
   border: 1px solid var(--blue);
-  background: rgba(244, 244, 241, 0.76);
+  background: rgba(var(--paper-rgb), 0.76);
   color: var(--blue);
   font-family: "Courier New", monospace;
   transition:
@@ -690,10 +753,10 @@ button {
       -45deg,
       transparent,
       transparent 7px,
-      rgba(18, 63, 200, 0.035) 7px,
-      rgba(18, 63, 200, 0.035) 8px
+      rgba(var(--accent-rgb), 0.035) 7px,
+      rgba(var(--accent-rgb), 0.035) 8px
     ),
-    #eef0f5;
+    var(--paper-deep);
 }
 
 .task-card.is-done .checkmark {
@@ -710,7 +773,7 @@ button {
 }
 
 .task-card.has-occurrences.is-done {
-  background: rgba(244, 244, 241, 0.72);
+  background: rgba(var(--paper-rgb), 0.72);
 }
 
 .task-card.has-occurrences.is-done::before {
@@ -723,7 +786,7 @@ button {
       rgba(255, 255, 255, 0.08) 8px,
       rgba(255, 255, 255, 0.08) 9px
     ),
-    rgba(18, 63, 200, 0.24);
+    rgba(var(--accent-rgb), 0.24);
 }
 
 .task-card.has-occurrences.is-done .task-progress-count {
@@ -739,7 +802,7 @@ button {
 .week-view,
 .archive-view {
   min-height: 620px;
-  background: rgba(244, 244, 241, 0.82);
+  background: rgba(var(--paper-rgb), 0.82);
 }
 
 .page-heading {
@@ -756,7 +819,7 @@ button {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   border-bottom: 1px solid var(--blue);
-  background: rgba(244, 244, 241, 0.92);
+  background: rgba(var(--paper-rgb), 0.92);
 }
 
 .period-switch button {
@@ -841,7 +904,7 @@ button {
   right: 0;
   bottom: 0;
   left: 0;
-  background: rgba(18, 63, 200, 0.17);
+  background: rgba(var(--accent-rgb), 0.17);
 }
 
 .week-grid .current {
@@ -925,8 +988,8 @@ button {
 .cycle-overview > div:first-child {
   border-right: 1px solid var(--blue);
   background:
-    linear-gradient(rgba(18, 63, 200, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(18, 63, 200, 0.08) 1px, transparent 1px);
+    linear-gradient(rgba(var(--accent-rgb), 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--accent-rgb), 0.08) 1px, transparent 1px);
   background-size: 12px 12px;
   color: var(--blue);
 }
@@ -1010,7 +1073,7 @@ button {
 
 .cycle-ruler i.current {
   background: var(--blue);
-  box-shadow: 0 0 0 3px rgba(18, 63, 200, 0.14);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.14);
 }
 
 .cycle-list {
@@ -1034,7 +1097,7 @@ button {
   min-height: 72px;
   align-items: center;
   border-bottom: 1px solid var(--line);
-  background: rgba(244, 244, 241, 0.76);
+  background: rgba(var(--paper-rgb), 0.76);
   cursor: pointer;
 }
 
@@ -1106,10 +1169,10 @@ button {
       -45deg,
       transparent,
       transparent 7px,
-      rgba(18, 63, 200, 0.04) 7px,
-      rgba(18, 63, 200, 0.04) 8px
+      rgba(var(--accent-rgb), 0.04) 7px,
+      rgba(var(--accent-rgb), 0.04) 8px
     ),
-    #eef0f5;
+    var(--paper-deep);
 }
 
 .cycle-item.is-done .cycle-check {
@@ -1269,7 +1332,7 @@ button {
   grid-template-columns: repeat(4, 1fr);
   height: 70px;
   border-top: 1px solid var(--blue);
-  background: rgba(244, 244, 241, 0.96);
+  background: rgba(var(--paper-rgb), 0.96);
   backdrop-filter: blur(8px);
 }
 
@@ -1337,8 +1400,8 @@ button {
   border-top: 1px solid var(--blue);
   border-radius: 18px 18px 0 0;
   background:
-    linear-gradient(rgba(18, 63, 200, 0.09) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(18, 63, 200, 0.09) 1px, transparent 1px),
+    linear-gradient(rgba(var(--accent-rgb), 0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--accent-rgb), 0.09) 1px, transparent 1px),
     var(--paper);
   background-size: 16px 16px;
   animation: slide-up 220ms ease-out;
@@ -1350,7 +1413,7 @@ button {
   height: 4px;
   margin: 10px auto 2px;
   border-radius: 10px;
-  background: rgba(18, 63, 200, 0.35);
+  background: rgba(var(--accent-rgb), 0.35);
 }
 
 .modal-head {
@@ -1628,7 +1691,7 @@ button {
 .archive-month-options button:disabled,
 .archive-day-options button:disabled {
   border-color: var(--line);
-  color: rgba(18, 63, 200, 0.24);
+  color: rgba(var(--accent-rgb), 0.24);
   cursor: not-allowed;
 }
 
@@ -1679,7 +1742,7 @@ button {
   flex: 0 0 auto;
   padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
   border-top: 1px solid var(--blue);
-  background: rgba(244, 244, 241, 0.97);
+  background: rgba(var(--paper-rgb), 0.97);
 }
 
 .submit-task {
