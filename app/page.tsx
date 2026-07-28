@@ -622,14 +622,14 @@ export default function Home() {
               newLongTermDay,
             );
   const scheduleLegend = isDailyFrequency
-    ? "每天执行 / EVERY DAY"
+    ? "每天执行"
     : isMultiFrequency
-      ? "选择 2–3 个星期 / WEEKDAYS"
+      ? "选择 2–3 个星期"
       : newFrequency === "每周 1 次"
-        ? "选择星期 / WEEKDAY"
+        ? "选择星期"
         : isMonthlyFrequency
-          ? "选择每月执行日 / DAY OF MONTH"
-          : "首次执行日期 / FIRST RUN";
+          ? "选择每月执行日"
+          : "首次执行日期";
   const scheduleHint = isDailyFrequency
     ? "已自动选择整周，每天都会出现在任务清单中"
     : isMultiFrequency
@@ -1020,12 +1020,12 @@ export default function Home() {
           </div>
           <div className="industrial-landing">
             <div>
-              <p>COMPUTATIONAL HOUSEKEEPING / SYSTEM ACTIVE</p>
+              <p>家庭维护系统 · 正常运行</p>
               <h1>{pageTitle}</h1>
             </div>
             <div className="industrial-hero-stat">
               <strong>{String(progress).padStart(2, "0")}</strong>
-              <span>% / OPERATION PROGRESS</span>
+              <span>% 完成进度</span>
             </div>
           </div>
         </>
@@ -1048,7 +1048,7 @@ export default function Home() {
               <span>年度周</span>
             </div>
             <div className="journal-heading">
-              <span>轻触 · HOUSEHOLD</span>
+              <span>轻触 · 家务卡片</span>
               <h1>{isActualToday ? "嗨，今天照顾什么？" : pageTitle}</h1>
               <p>
                 {pageTitle} · {doneCount}/{selectedDayTasks.length} 个任务 ·
@@ -1071,7 +1071,7 @@ export default function Home() {
         <>
           <div className="pixel-topbar">
             <div>
-              <span>HOUSEHOLD_GARDEN.EXE</span>
+              <span>家务花园.EXE</span>
               <strong>W{String(annualWeekNumber).padStart(2, "0")}</strong>
             </div>
             {skinPicker}
@@ -1122,7 +1122,7 @@ export default function Home() {
         <div className="overview-copy">
           <div className="section-kicker">
             <span>01</span>
-            <p>{isActualToday ? "TODAY'S OPERATION" : "SELECTED DAY OPERATION"}</p>
+            <p>{isActualToday ? "今日执行" : "所选日期任务"}</p>
           </div>
           <h2>{selectedDateHeading}</h2>
           <p>
@@ -1139,7 +1139,7 @@ export default function Home() {
         aria-label="今日概览"
       >
         <div className="industrial-progress-block">
-          <span>01 / EXECUTION</span>
+          <span>01 / 执行进度</span>
           <strong>
             {doneCount}
             <small>/{selectedDayTasks.length}</small>
@@ -1188,7 +1188,7 @@ export default function Home() {
           ))}
         </div>
         <div>
-          <span>GARDEN_STATUS</span>
+          <span>花园状态</span>
           <strong>{progress}% 已生长</strong>
           <small>剩余 {remainingMinutes} 分钟</small>
         </div>
@@ -1251,7 +1251,9 @@ export default function Home() {
                 <div className="filter-heading">
                   <div>
                     <span>周{selectedDay}任务清单</span>
-                    <strong>{String(filteredTasks.length).padStart(2, "0")} ITEMS</strong>
+                    <strong>
+                      {String(filteredTasks.length).padStart(2, "0")} 项任务
+                    </strong>
                   </div>
                   <button
                     className="add-inline"
@@ -1413,7 +1415,7 @@ export default function Home() {
               <div className="page-heading">
                 <div className="section-kicker">
                   <span>02</span>
-                  <p>MAINTENANCE CYCLE</p>
+                  <p>周期维护</p>
                 </div>
                 <h2 id="week-title">
                   {planPeriod === "week" &&
@@ -1433,9 +1435,9 @@ export default function Home() {
 
               <div className="period-switch" aria-label="选择计划周期">
                 {[
-                  ["week", "周计划", "7 DAYS"],
-                  ["quarter", "季度", "3 MONTHS"],
-                  ["half", "半年", "6 MONTHS"],
+                  ["week", "周计划", "7 天"],
+                  ["quarter", "季度", "3 个月"],
+                  ["half", "半年", "6 个月"],
                 ].map(([value, label, english]) => (
                   <button
                     className={planPeriod === value ? "active" : ""}
@@ -1509,7 +1511,7 @@ export default function Home() {
                   </div>
 
                   <div className="blue-note">
-                    <span>MAINTENANCE NOTE / 备注 01</span>
+                    <span>维护备注 01</span>
                     <p>
                       周末安排耗时较长的深度清洁；日常维护尽量控制在 20
                       分钟内。
@@ -1523,7 +1525,7 @@ export default function Home() {
                   <div className="cycle-overview">
                     <div>
                       <span>
-                        {planPeriod === "quarter" ? "Q3" : "H2"} / 2026
+                        {planPeriod === "quarter" ? "第三季度" : "下半年"} · 2026
                       </span>
                       <strong>
                         {
@@ -1536,7 +1538,7 @@ export default function Home() {
                       <p>已完成计划</p>
                     </div>
                     <div className="cycle-copy">
-                      <small>PERIODIC MAINTENANCE</small>
+                      <small>周期维护</small>
                       <h3>
                         {planPeriod === "quarter"
                           ? "季度深度维护"
@@ -1556,14 +1558,14 @@ export default function Home() {
                     }`}
                   >
                     {(planPeriod === "quarter"
-                      ? ["07 JUL", "08 AUG", "09 SEP"]
+                      ? ["7月", "8月", "9月"]
                       : [
-                          "07 JUL",
-                          "08 AUG",
-                          "09 SEP",
-                          "10 OCT",
-                          "11 NOV",
-                          "12 DEC",
+                          "7月",
+                          "8月",
+                          "9月",
+                          "10月",
+                          "11月",
+                          "12月",
                         ]
                     ).map((month, index) => (
                       <div key={month}>
@@ -1609,8 +1611,8 @@ export default function Home() {
                   <div className="blue-note">
                     <span>
                       {planPeriod === "quarter"
-                        ? "QUARTERLY NOTE / 季度备注"
-                        : "HALF-YEAR NOTE / 半年备注"}
+                        ? "季度备注"
+                        : "半年备注"}
                     </span>
                     <p>
                       完成后勾选归档；涉及拆机、登高或电路的项目，建议安排专业人员处理。
@@ -1626,7 +1628,7 @@ export default function Home() {
               <div className="page-heading">
                 <div className="section-kicker">
                   <span>03</span>
-                  <p>ARCHIVE INDEX</p>
+                  <p>档案索引</p>
                 </div>
                 <h2 id="archive-title">2026年8月</h2>
                 <p>2026年8月 / 家庭维护记录</p>
@@ -1641,7 +1643,7 @@ export default function Home() {
                 <article>
                   <span>连续打卡</span>
                   <strong>06</strong>
-                  <small>DAYS / 天</small>
+                  <small>天</small>
                 </article>
                 <article>
                   <span>计划完成率</span>
@@ -1651,21 +1653,21 @@ export default function Home() {
                 <article>
                   <span>维护区域</span>
                   <strong>05</strong>
-                  <small>ZONES / 区域</small>
+                  <small>个区域</small>
                 </article>
               </div>
 
               <div className="room-index">
                 <div className="index-title">
                   <span>区域索引</span>
-                  <small>ROOM NOMENCLATURE</small>
+                  <small>维护项目统计</small>
                 </div>
                 {[
-                  ["01", "客厅", "LIVING ROOM", "12 项"],
-                  ["02", "厨房", "KITCHEN", "18 项"],
-                  ["03", "卧室", "BEDROOM", "09 项"],
-                  ["04", "卫生间", "BATHROOM", "13 项"],
-                  ["05", "阳台", "BALCONY", "08 项"],
+                  ["01", "客厅", "日常维护", "12 项"],
+                  ["02", "厨房", "清洁与消毒", "18 项"],
+                  ["03", "卧室", "除尘与整理", "09 项"],
+                  ["04", "卫生间", "深度清洁", "13 项"],
+                  ["05", "阳台", "收纳与养护", "08 项"],
                 ].map((room) => (
                   <div className="index-row" key={room[0]}>
                     <b>{room[0]}</b>
@@ -1679,7 +1681,7 @@ export default function Home() {
               <button className="reset-button" onClick={resetArchive} type="button">
                 重置本周打卡
               </button>
-              <p className="storage-note">数据仅保存在当前设备 · LOCAL ARCHIVE</p>
+              <p className="storage-note">数据仅保存在当前设备</p>
             </section>
           )}
         </div>
@@ -1736,7 +1738,7 @@ export default function Home() {
               <div className="sheet-handle" aria-hidden="true" />
               <div className="modal-head">
                 <div>
-                  <small>NEW ARCHIVE ENTRY / 04</small>
+                  <small>新增任务 · 04</small>
                   <h2 id="new-task-title">新增任务</h2>
                 </div>
                 <button
@@ -1750,7 +1752,7 @@ export default function Home() {
 
               <div className="task-form-body">
                 <label className="task-name-field">
-                  <span>任务名称 / ITEM NAME</span>
+                  <span>任务名称</span>
                   <input
                     enterKeyHint="done"
                     maxLength={30}
@@ -1762,7 +1764,7 @@ export default function Home() {
                 </label>
 
                 <fieldset className="mobile-choice-field">
-                  <legend>频次 / FREQUENCY</legend>
+                  <legend>执行频次</legend>
                   <div className="choice-grid frequency-choice-grid">
                     {[
                       "每天 1 次",
@@ -1844,7 +1846,7 @@ export default function Home() {
                         aria-live="polite"
                         className="archive-date-display"
                       >
-                        <span>SELECTED DATE</span>
+                        <span>已选日期</span>
                         <strong>
                           {newLongTermYear}.
                           {String(newLongTermMonth).padStart(2, "0")}.
@@ -1853,7 +1855,7 @@ export default function Home() {
                       </div>
 
                       <div className="archive-date-section">
-                        <span>年份 / YEAR</span>
+                        <span>年份</span>
                         <div
                           aria-label="选择年份"
                           className="archive-year-options"
@@ -1876,7 +1878,7 @@ export default function Home() {
                       </div>
 
                       <div className="archive-date-section">
-                        <span>月份 / MONTH</span>
+                        <span>月份</span>
                         <div
                           aria-label="选择月份"
                           className="archive-month-options"
@@ -1903,7 +1905,7 @@ export default function Home() {
                       </div>
 
                       <div className="archive-date-section">
-                        <span>日期 / DAY</span>
+                        <span>日期</span>
                         <div
                           aria-label="选择日期"
                           className="archive-day-options"
@@ -1946,7 +1948,7 @@ export default function Home() {
                 </fieldset>
 
                 <fieldset className="mobile-choice-field">
-                  <legend>区域 / ZONE</legend>
+                  <legend>所在区域</legend>
                   <div className="choice-grid room-choice-grid">
                     {rooms.slice(1).map((room) => (
                       <button
