@@ -542,7 +542,12 @@ export default function Home() {
       completed.includes(key),
     ).length;
     const isComplete = completedCount === occurrenceKeys.length;
-    const nextKey = occurrenceKeys.find((key) => !completed.includes(key));
+    const selectedDateKey = getCompletionKey(selectedDayMeta.dateKey, id);
+    const nextKey =
+      occurrenceKeys.includes(selectedDateKey) &&
+      !completed.includes(selectedDateKey)
+        ? selectedDateKey
+        : occurrenceKeys.find((key) => !completed.includes(key));
     const next = isComplete
       ? completed.filter((key) => !occurrenceKeys.includes(key))
       : nextKey
