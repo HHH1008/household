@@ -519,6 +519,8 @@ button {
   padding: 10px 15px 10px 10px;
   border-bottom: 1px solid var(--line);
   background: rgba(244, 244, 241, 0.72);
+  cursor: pointer;
+  touch-action: manipulation;
   transition: background 160ms ease;
 }
 
@@ -526,12 +528,20 @@ button {
   background: #eef0f5;
 }
 
+.task-card:active {
+  background: #e4e8f2;
+}
+
+.task-card:focus-visible {
+  z-index: 1;
+  outline: 2px solid var(--blue);
+  outline-offset: -2px;
+}
+
 .task-card.has-occurrences {
   isolation: isolate;
   min-height: 88px;
   overflow: hidden;
-  cursor: pointer;
-  touch-action: manipulation;
 }
 
 .task-card.has-occurrences::before {
@@ -566,21 +576,12 @@ button {
   font: 700 8px/1 "Courier New", monospace;
 }
 
-.task-card input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-}
-
 .task-primary-check {
   display: grid;
   width: 42px;
   height: 42px;
   justify-self: center;
   place-items: center;
-  cursor: pointer;
-  touch-action: manipulation;
 }
 
 .checkmark {

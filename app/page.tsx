@@ -943,15 +943,21 @@ export default function Home() {
                             100,
                         )
                       : 0;
-                    const handleOccurrenceKeyDown = (
+                    const activateTask = () => {
+                      if (hasMultipleOccurrences) {
+                        cycleWeeklyTask(task.id, weeklyOccurrences);
+                      } else {
+                        toggleTask(task.id);
+                      }
+                    };
+                    const handleTaskKeyDown = (
                       event: KeyboardEvent<HTMLElement>,
                     ) => {
                       if (
-                        hasMultipleOccurrences &&
                         (event.key === "Enter" || event.key === " ")
                       ) {
                         event.preventDefault();
-                        cycleWeeklyTask(task.id, weeklyOccurrences);
+                        activateTask();
                       }
                     };
                     return (
@@ -961,19 +967,23 @@ export default function Home() {
                         } ${isFullyDone ? "is-done" : ""} ${
                           hasMultipleOccurrences ? "has-occurrences" : ""
                         }`}
-                        onClick={
-                          hasMultipleOccurrences
-                            ? () =>
-                                cycleWeeklyTask(task.id, weeklyOccurrences)
-                            : undefined
-                        }
-                        onKeyDown={handleOccurrenceKeyDown}
-                        role={hasMultipleOccurrences ? "button" : undefined}
-                        tabIndex={hasMultipleOccurrences ? 0 : undefined}
+                        onClick={activateTask}
+                        onKeyDown={handleTaskKeyDown}
+                        role="button"
+                        tabIndex={0}
+                        aria-pressed={isFullyDone}
                         aria-label={
                           hasMultipleOccurrences
-                            ? `${task.title}，本周已完成 ${completedOccurrences}/${weeklyOccurrences.length} 次，轻点继续打卡`
-                            : undefined
+                            ? `${task.title}，本周已完成 ${completedOccurrences}/${weeklyOccurrences.length} 次，${
+                                isFullyDone
+                                  ? "轻点重置本周次数"
+                                  : "轻点继续打卡"
+                              }`
+                            : `${task.title}，${
+                                isDone
+                                  ? "已完成，轻点整行撤销"
+                                  : "未完成，轻点整行打卡"
+                              }`
                         }
                         style={
                           hasMultipleOccurrences
@@ -996,19 +1006,14 @@ export default function Home() {
                             <small>/{weeklyOccurrences.length}</small>
                           </span>
                         ) : (
-                          <label
-                            aria-label={`${selectedDayMeta.month}月${selectedDayMeta.date}日 ${task.title}`}
+                          <span
                             className="task-primary-check"
+                            aria-hidden="true"
                           >
-                            <input
-                              checked={isDone}
-                              onChange={() => toggleTask(task.id)}
-                              type="checkbox"
-                            />
-                            <span className="checkmark" aria-hidden="true">
+                            <span className="checkmark">
                               {isDone ? "✓" : ""}
                             </span>
-                          </label>
+                          </span>
                         )}
                         <span className="task-copy">
                           <strong>{task.title}</strong>
