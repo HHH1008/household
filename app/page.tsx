@@ -13,7 +13,7 @@ import {
 type Room = "全部" | "客厅" | "厨房" | "卧室" | "卫生间" | "阳台";
 type Tab = "today" | "week" | "archive";
 type PlanPeriod = "week" | "quarter" | "half";
-type Skin = "blueprint" | "warm" | "forest";
+type Skin = "imagine" | "industrial" | "journal" | "pixel";
 type WeekDay = "一" | "二" | "三" | "四" | "五" | "六" | "日";
 type CalendarDay = {
   day: WeekDay;
@@ -142,10 +142,15 @@ const baseTasks: Task[] = [
 ];
 
 const rooms: Room[] = ["全部", "客厅", "厨房", "卧室", "卫生间", "阳台"];
-const skins: Array<{ id: Skin; label: string }> = [
-  { id: "blueprint", label: "蓝图" },
-  { id: "warm", label: "暖纸" },
-  { id: "forest", label: "墨绿" },
+const skins: Array<{
+  id: Skin;
+  label: string;
+  description: string;
+}> = [
+  { id: "imagine", label: "想象粉", description: "趣味漂浮 / 高饱和" },
+  { id: "industrial", label: "极简工艺", description: "黑白分栏 / 大留白" },
+  { id: "journal", label: "晨光手账", description: "柔和渐变 / 日常记录" },
+  { id: "pixel", label: "像素花园", description: "十字绣网格 / 森林色" },
 ];
 const allWeekDays: WeekDay[] = ["一", "二", "三", "四", "五", "六", "日"];
 const appTodayKey = "2026-08-07";
@@ -375,7 +380,8 @@ export default function Home() {
   const appScrollRef = useRef<HTMLElement>(null);
   const [activeTab, setActiveTab] = useState<Tab>("today");
   const [planPeriod, setPlanPeriod] = useState<PlanPeriod>("week");
-  const [skin, setSkin] = useState<Skin>("blueprint");
+  const [skin, setSkin] = useState<Skin>("industrial");
+  const [isSkinMenuOpen, setIsSkinMenuOpen] = useState(false);
   const [selectedWeekStart, setSelectedWeekStart] = useState(
     appCurrentWeekStart,
   );
@@ -414,8 +420,16 @@ export default function Home() {
       );
       if (savedCycle) setCycleCompleted(JSON.parse(savedCycle));
       const savedSkin = window.localStorage.getItem("household-archive-skin");
-      if (skins.some((item) => item.id === savedSkin)) {
-        setSkin(savedSkin as Skin);
+      const migratedSkin =
+        savedSkin === "blueprint"
+          ? "industrial"
+          : savedSkin === "warm"
+            ? "journal"
+            : savedSkin === "forest"
+              ? "pixel"
+              : savedSkin;
+      if (skins.some((item) => item.id === migratedSkin)) {
+        setSkin(migratedSkin as Skin);
       }
       setCustomTasks(readStoredTasks());
     } catch {
@@ -426,6 +440,15 @@ export default function Home() {
   useEffect(() => {
     appScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   }, [activeTab]);
+
+  useEffect(() => {
+    if (!isSkinMenuOpen) return;
+    const closeOnEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape") setIsSkinMenuOpen(false);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [isSkinMenuOpen]);
 
   const tasks = useMemo(() => [...baseTasks, ...customTasks], [customTasks]);
   const weekDays = useMemo(
@@ -594,12 +617,12 @@ export default function Home() {
     setSelectedDay("五");
   }
 
-  function cycleSkin() {
-    const currentIndex = skins.findIndex((item) => item.id === skin);
-    const nextSkin = skins[(currentIndex + 1) % skins.length];
-    setSkin(nextSkin.id);
-    window.localStorage.setItem("household-archive-skin", nextSkin.id);
-    setNotice(`已切换为${nextSkin.label}皮肤`);
+  function selectSkin(nextSkin: Skin) {
+    const nextSkinMeta = skins.find((item) => item.id === nextSkin);
+    setSkin(nextSkin);
+    setIsSkinMenuOpen(false);
+    window.localStorage.setItem("household-archive-skin", nextSkin);
+    setNotice(`已切换为${nextSkinMeta?.label}皮肤`);
     window.setTimeout(() => setNotice(""), 1800);
   }
 
@@ -819,23 +842,70 @@ export default function Home() {
                 {selectedDay}
               </strong>
             </div>
-            <div>
+            <div className="skin-cell">
               <span>更新日期</span>
               <strong>
                 {String(selectedDayMeta.month).padStart(2, "0")}.
                 {selectedDayMeta.date}.{selectedDayMeta.year}
               </strong>
               <button
-                aria-label={`当前为${skins.find((item) => item.id === skin)?.label}皮肤，轻点切换`}
+                aria-controls="skin-menu"
+                aria-expanded={isSkinMenuOpen}
+                aria-haspopup="listbox"
+                aria-label={`当前为${skins.find((item) => item.id === skin)?.label}皮肤，打开皮肤菜单`}
                 className="skin-switcher"
-                onClick={cycleSkin}
+                onClick={() => setIsSkinMenuOpen((current) => !current)}
                 type="button"
               >
                 <i aria-hidden="true" />
                 <span>
                   皮肤 · {skins.find((item) => item.id === skin)?.label}
                 </span>
+                <b aria-hidden="true">{isSkinMenuOpen ? "↑" : "↓"}</b>
               </button>
+              {isSkinMenuOpen && (
+                <>
+                  <button
+                    aria-label="关闭皮肤菜单"
+                    className="skin-menu-scrim"
+                    onClick={() => setIsSkinMenuOpen(false)}
+                    type="button"
+                  />
+                  <ul
+                    aria-label="选择页面皮肤"
+                    className="skin-menu"
+                    id="skin-menu"
+                    role="listbox"
+                  >
+                    {skins.map((item, index) => (
+                      <li key={item.id}>
+                        <button
+                          aria-selected={skin === item.id}
+                          className={skin === item.id ? "active" : ""}
+                          onClick={() => selectSkin(item.id)}
+                          role="option"
+                          type="button"
+                        >
+                          <i
+                            aria-hidden="true"
+                            className={`skin-preview skin-preview-${item.id}`}
+                          />
+                          <span>
+                            <small>
+                              {String(index + 1).padStart(2, "0")}
+                            </small>
+                            <strong>{item.label}</strong>
+                            <em>{item.description}</em>
+                          </span>
+                          <b aria-hidden="true">
+                            {skin === item.id ? "✓" : "→"}
+                          </b>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
             </div>
           </div>
 

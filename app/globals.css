@@ -75,32 +75,60 @@ button {
   box-shadow: 0 18px 60px rgba(12, 23, 48, 0.18);
 }
 
-.mini-app[data-skin="warm"] {
-  --blue: #bd4a1e;
-  --blue-dark: #873110;
-  --accent-rgb: 189, 74, 30;
-  --ink: #32180e;
-  --paper: #f7efdf;
-  --paper-deep: #eadbc3;
-  --paper-rgb: 247, 239, 223;
-  --panel-rgb: 247, 239, 223;
-  --line: rgba(var(--accent-rgb), 0.28);
-  --fine-line: rgba(var(--accent-rgb), 0.12);
-  --muted: #7a6555;
+.mini-app[data-skin="imagine"] {
+  --blue: #ef351e;
+  --blue-dark: #bd2515;
+  --accent-rgb: 239, 53, 30;
+  --ink: #2c1029;
+  --paper: #f28aef;
+  --paper-deep: #dd65d9;
+  --paper-rgb: 242, 138, 239;
+  --panel-rgb: 247, 171, 244;
+  --line: rgba(var(--accent-rgb), 0.34);
+  --fine-line: rgba(91, 25, 87, 0.13);
+  --muted: #6d3569;
 }
 
-.mini-app[data-skin="forest"] {
-  --blue: #256749;
-  --blue-dark: #164832;
-  --accent-rgb: 37, 103, 73;
-  --ink: #15261e;
-  --paper: #edf2e9;
-  --paper-deep: #dce6d8;
-  --paper-rgb: 237, 242, 233;
-  --panel-rgb: 237, 242, 233;
-  --line: rgba(var(--accent-rgb), 0.28);
-  --fine-line: rgba(var(--accent-rgb), 0.12);
-  --muted: #607268;
+.mini-app[data-skin="industrial"] {
+  --blue: #111111;
+  --blue-dark: #000000;
+  --accent-rgb: 17, 17, 17;
+  --ink: #111111;
+  --paper: #f5f5f3;
+  --paper-deep: #e8e8e5;
+  --paper-rgb: 245, 245, 243;
+  --panel-rgb: 250, 250, 248;
+  --line: rgba(var(--accent-rgb), 0.2);
+  --fine-line: rgba(var(--accent-rgb), 0.08);
+  --muted: #777777;
+}
+
+.mini-app[data-skin="journal"] {
+  --blue: #1b1b1b;
+  --blue-dark: #000000;
+  --accent-rgb: 27, 27, 27;
+  --ink: #191919;
+  --paper: #fffaf4;
+  --paper-deep: #f5e4d8;
+  --paper-rgb: 255, 250, 244;
+  --panel-rgb: 255, 244, 235;
+  --line: rgba(var(--accent-rgb), 0.18);
+  --fine-line: rgba(var(--accent-rgb), 0.07);
+  --muted: #7c756f;
+}
+
+.mini-app[data-skin="pixel"] {
+  --blue: #153f28;
+  --blue-dark: #082617;
+  --accent-rgb: 21, 63, 40;
+  --ink: #07190e;
+  --paper: #d3e7d8;
+  --paper-deep: #a9c7ae;
+  --paper-rgb: 211, 231, 216;
+  --panel-rgb: 190, 216, 197;
+  --line: rgba(var(--accent-rgb), 0.42);
+  --fine-line: rgba(var(--accent-rgb), 0.2);
+  --muted: #456451;
 }
 
 .app-header {
@@ -108,6 +136,7 @@ button {
 }
 
 .technical-strip {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr 1.15fr 0.9fr;
   min-height: 82px;
@@ -126,6 +155,11 @@ button {
 .technical-strip div:last-child {
   border-right: 0;
   text-align: right;
+}
+
+.technical-strip .skin-cell {
+  position: relative;
+  z-index: 32;
 }
 
 .technical-strip span,
@@ -149,7 +183,10 @@ button {
 }
 
 .skin-switcher {
+  position: relative;
+  z-index: 34;
   display: flex;
+  width: 100%;
   min-height: 28px;
   align-items: center;
   justify-content: flex-end;
@@ -175,9 +212,154 @@ button {
 }
 
 .technical-strip .skin-switcher span {
+  min-width: 0;
   margin: 0;
+  overflow: hidden;
   font: 700 8px/1 "Courier New", monospace;
   letter-spacing: 0.02em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.skin-switcher b {
+  font: 700 10px/1 "Courier New", monospace;
+}
+
+.skin-menu-scrim {
+  position: fixed;
+  z-index: 31;
+  inset: 0;
+  border: 0;
+  background: rgba(7, 10, 16, 0.24);
+  cursor: default;
+}
+
+.skin-menu {
+  position: absolute;
+  z-index: 35;
+  top: calc(100% - 1px);
+  right: -1px;
+  width: min(292px, calc(100vw - 20px));
+  margin: 0;
+  padding: 8px;
+  border: 1px solid var(--blue);
+  background: rgba(var(--paper-rgb), 0.98);
+  box-shadow: 8px 8px 0 rgba(var(--accent-rgb), 0.22);
+  list-style: none;
+  text-align: left;
+  backdrop-filter: blur(14px);
+  animation: skin-menu-in 160ms ease-out;
+}
+
+.skin-menu li + li {
+  margin-top: 5px;
+}
+
+.skin-menu button {
+  display: grid;
+  width: 100%;
+  min-height: 64px;
+  grid-template-columns: 48px minmax(0, 1fr) 18px;
+  gap: 10px;
+  align-items: center;
+  padding: 7px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.54);
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+  touch-action: manipulation;
+}
+
+.skin-menu button.active {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: white;
+}
+
+.skin-preview {
+  display: block;
+  width: 48px;
+  height: 48px;
+  border: 1px solid currentColor;
+}
+
+.skin-preview-imagine {
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 68% 28%, #f02f1d 0 6px, transparent 7px),
+    linear-gradient(15deg, transparent 43%, #f02f1d 44% 56%, transparent 57%),
+    #f18bed;
+}
+
+.skin-preview-industrial {
+  background:
+    linear-gradient(90deg, #111 50%, transparent 50%),
+    linear-gradient(#111 50%, #f4f4f2 50%);
+  background-size: 100% 50%, 100% 100%;
+}
+
+.skin-preview-journal {
+  border-radius: 12px;
+  background:
+    linear-gradient(90deg, #1a1a1a 0 2px, transparent 2px) 13px 28px / 22px 1px
+      no-repeat,
+    linear-gradient(135deg, #ffdcbf, #ffad96 58%, #fffaf4);
+}
+
+.skin-preview-pixel {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.28) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.28) 1px, transparent 1px),
+    linear-gradient(135deg, #173d25 50%, #789663 50%);
+  background-size: 8px 8px, 8px 8px, 100% 100%;
+  image-rendering: pixelated;
+}
+
+.technical-strip .skin-menu span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  margin: 0;
+  color: currentColor;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.skin-menu small {
+  opacity: 0.62;
+  font: 700 7px/1 "Courier New", monospace;
+}
+
+.technical-strip .skin-menu strong {
+  margin-top: 4px;
+  color: currentColor;
+  font-family:
+    "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 13px;
+  letter-spacing: 0;
+}
+
+.skin-menu em {
+  margin-top: 4px;
+  overflow: hidden;
+  color: currentColor;
+  font: normal 8px/1 "Courier New", monospace;
+  opacity: 0.7;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.skin-menu button > b {
+  font: 700 13px/1 "Courier New", monospace;
+  text-align: center;
+}
+
+@keyframes skin-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
 }
 
 .hero-title {
@@ -1797,6 +1979,508 @@ button {
   border-radius: 50%;
   background: var(--blue);
   color: white;
+}
+
+/* Reference 01 — playful imagination */
+.mini-app[data-skin="imagine"] {
+  border-color: #ef351e;
+  border-radius: 20px;
+  background:
+    linear-gradient(rgba(74, 21, 70, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74, 21, 70, 0.12) 1px, transparent 1px),
+    var(--paper);
+  background-size: 28px 28px;
+  box-shadow: 0 18px 60px rgba(89, 20, 83, 0.25);
+}
+
+.mini-app[data-skin="imagine"] .technical-strip {
+  border-color: #ef351e;
+  background: rgba(246, 166, 243, 0.94);
+}
+
+.mini-app[data-skin="imagine"] .hero-title {
+  display: flex;
+  min-height: 230px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 26px 18px 16px;
+  background:
+    radial-gradient(circle at 12% 24%, #ffffff 0 20px, transparent 21px),
+    radial-gradient(circle at 84% 30%, #103f27 0 26px, transparent 27px),
+    linear-gradient(rgba(74, 21, 70, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74, 21, 70, 0.12) 1px, transparent 1px),
+    var(--paper);
+  background-size:
+    auto,
+    auto,
+    28px 28px,
+    28px 28px,
+    auto;
+}
+
+.mini-app[data-skin="imagine"] .hero-title::before,
+.mini-app[data-skin="imagine"] .hero-title::after {
+  display: none;
+}
+
+.mini-app[data-skin="imagine"] .hero-title > p {
+  margin: 0 0 20px;
+  color: #6c285f;
+}
+
+.mini-app[data-skin="imagine"] .hero-title h1 {
+  color: #ef351e;
+  font-family:
+    "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: clamp(58px, 17vw, 82px);
+  font-weight: 900;
+  letter-spacing: -0.08em;
+  text-align: center;
+  text-shadow: 3px 3px 0 rgba(255, 255, 255, 0.62);
+  transform: rotate(-1deg);
+}
+
+.mini-app[data-skin="imagine"] .title-footer {
+  width: 100%;
+  margin-top: 22px;
+}
+
+.mini-app[data-skin="imagine"] .today-overview,
+.mini-app[data-skin="imagine"] .week-navigator,
+.mini-app[data-skin="imagine"] .week-ruler {
+  margin-right: 12px;
+  margin-left: 12px;
+  border: 2px solid var(--blue);
+  border-radius: 18px;
+  background: rgba(255, 250, 255, 0.78);
+  overflow: hidden;
+}
+
+.mini-app[data-skin="imagine"] .today-overview {
+  margin-top: 12px;
+}
+
+.mini-app[data-skin="imagine"] .week-navigator,
+.mini-app[data-skin="imagine"] .week-ruler {
+  margin-top: 10px;
+}
+
+.mini-app[data-skin="imagine"] .task-section {
+  padding: 4px 12px 18px;
+  background: transparent;
+}
+
+.mini-app[data-skin="imagine"] .task-list {
+  display: grid;
+  gap: 10px;
+  border: 0;
+}
+
+.mini-app[data-skin="imagine"] .task-card {
+  min-height: 84px;
+  border: 2px solid var(--blue);
+  border-radius: 16px;
+  background: rgba(255, 250, 255, 0.84);
+  box-shadow: 4px 4px 0 rgba(var(--accent-rgb), 0.24);
+}
+
+.mini-app[data-skin="imagine"] .task-card:nth-child(odd) {
+  transform: rotate(-0.35deg);
+}
+
+.mini-app[data-skin="imagine"] .task-card:nth-child(even) {
+  transform: rotate(0.35deg);
+}
+
+.mini-app[data-skin="imagine"] .checkmark,
+.mini-app[data-skin="imagine"] .task-progress-count {
+  border-width: 2px;
+  border-radius: 50%;
+}
+
+.mini-app[data-skin="imagine"] .room-filters button,
+.mini-app[data-skin="imagine"] .skin-menu,
+.mini-app[data-skin="imagine"] .skin-menu button,
+.mini-app[data-skin="imagine"] .task-modal {
+  border-radius: 16px;
+}
+
+.mini-app[data-skin="imagine"] .bottom-nav {
+  background: rgba(246, 166, 243, 0.96);
+}
+
+/* Reference 02 — monochrome computational craft */
+.mini-app[data-skin="industrial"] {
+  background:
+    linear-gradient(var(--fine-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--fine-line) 1px, transparent 1px),
+    var(--paper);
+  background-size: 32px 32px;
+}
+
+.mini-app[data-skin="industrial"] .technical-strip {
+  min-height: 74px;
+  background: rgba(250, 250, 248, 0.98);
+}
+
+.mini-app[data-skin="industrial"] .hero-title {
+  min-height: 220px;
+  padding: 32px 20px 18px;
+  background:
+    linear-gradient(rgba(17, 17, 17, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(17, 17, 17, 0.055) 1px, transparent 1px),
+    #f8f8f6;
+  background-size: 64px 64px;
+}
+
+.mini-app[data-skin="industrial"] .hero-title::before,
+.mini-app[data-skin="industrial"] .hero-title::after {
+  color: #777;
+}
+
+.mini-app[data-skin="industrial"] .hero-title > p {
+  margin: 10px 0 42px;
+  color: #777;
+  font-weight: 500;
+}
+
+.mini-app[data-skin="industrial"] .hero-title h1 {
+  color: #111;
+  font-family:
+    "Helvetica Neue", "PingFang SC", sans-serif;
+  font-size: clamp(54px, 13vw, 70px);
+  font-weight: 300;
+  letter-spacing: -0.08em;
+}
+
+.mini-app[data-skin="industrial"] .today-overview {
+  background: #f8f8f6;
+}
+
+.mini-app[data-skin="industrial"] .task-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  border-color: #111;
+}
+
+.mini-app[data-skin="industrial"] .task-card {
+  background: rgba(250, 250, 248, 0.94);
+}
+
+.mini-app[data-skin="industrial"] .task-card.is-done:not(.has-occurrences) {
+  background: #111;
+  color: white;
+}
+
+.mini-app[data-skin="industrial"]
+  .task-card.is-done:not(.has-occurrences)
+  .task-copy
+  strong,
+.mini-app[data-skin="industrial"]
+  .task-card.is-done:not(.has-occurrences)
+  .task-copy
+  > span,
+.mini-app[data-skin="industrial"]
+  .task-card.is-done:not(.has-occurrences)
+  .task-meta
+  small,
+.mini-app[data-skin="industrial"]
+  .task-card.is-done:not(.has-occurrences)
+  .task-meta
+  strong,
+.mini-app[data-skin="industrial"]
+  .task-card.is-done:not(.has-occurrences)
+  .task-index {
+  color: white;
+}
+
+.mini-app[data-skin="industrial"] .skin-menu {
+  box-shadow: 8px 8px 0 #111;
+}
+
+/* Reference 03 — warm daily journal */
+.mini-app[data-skin="journal"] {
+  border-radius: 18px;
+  background: #fffaf4;
+  box-shadow: 0 18px 60px rgba(75, 42, 25, 0.18);
+}
+
+.mini-app[data-skin="journal"] .technical-strip {
+  border-bottom-color: rgba(25, 25, 25, 0.14);
+  background: linear-gradient(120deg, #ffe5c9, #ffad96);
+}
+
+.mini-app[data-skin="journal"] .technical-strip div {
+  border-right-color: rgba(25, 25, 25, 0.14);
+}
+
+.mini-app[data-skin="journal"] .hero-title {
+  min-height: 230px;
+  padding: 42px 22px 18px;
+  background: linear-gradient(160deg, #ffb298 0%, #ffe2c7 58%, #fffaf4 100%);
+}
+
+.mini-app[data-skin="journal"] .hero-title::before,
+.mini-app[data-skin="journal"] .hero-title::after {
+  display: none;
+}
+
+.mini-app[data-skin="journal"] .hero-title > p {
+  margin: 0 0 34px;
+  color: #4e443d;
+  letter-spacing: 0;
+}
+
+.mini-app[data-skin="journal"] .hero-title h1 {
+  color: #171717;
+  font-family:
+    "Helvetica Neue", "PingFang SC", sans-serif;
+  font-size: clamp(62px, 16vw, 84px);
+  font-weight: 700;
+  letter-spacing: -0.08em;
+}
+
+.mini-app[data-skin="journal"] .title-footer {
+  margin-top: 24px;
+  padding-top: 10px;
+  border-top: 3px solid #1b1b1b;
+  color: #1b1b1b;
+}
+
+.mini-app[data-skin="journal"] .today-overview {
+  border: 0;
+  background: #fffaf4;
+}
+
+.mini-app[data-skin="journal"] .progress-dial > div {
+  border-width: 2px;
+  background: #fffaf4;
+}
+
+.mini-app[data-skin="journal"] .week-navigator {
+  margin: 0 14px 12px;
+  border: 1px solid rgba(25, 25, 25, 0.16);
+  border-radius: 16px;
+  background: white;
+  overflow: hidden;
+}
+
+.mini-app[data-skin="journal"] .week-ruler {
+  padding: 4px 10px 10px;
+  border: 0;
+  background: #fffaf4;
+}
+
+.mini-app[data-skin="journal"] .week-ruler > button {
+  min-height: 78px;
+  border: 0;
+}
+
+.mini-app[data-skin="journal"] .week-ruler strong {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid #aaa;
+  border-radius: 50%;
+  font-size: 15px;
+}
+
+.mini-app[data-skin="journal"] .week-ruler .current {
+  background: transparent;
+  color: #111;
+}
+
+.mini-app[data-skin="journal"] .week-ruler .current span {
+  color: #111;
+}
+
+.mini-app[data-skin="journal"] .week-ruler .current strong {
+  border-color: #111;
+  background: #111;
+  color: white;
+}
+
+.mini-app[data-skin="journal"] .week-ruler em {
+  border: 0;
+}
+
+.mini-app[data-skin="journal"] .task-section {
+  background: #fffaf4;
+}
+
+.mini-app[data-skin="journal"] .task-list {
+  padding: 0 16px 16px;
+  border: 0;
+}
+
+.mini-app[data-skin="journal"] .task-card {
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  min-height: 78px;
+  column-gap: 10px;
+  padding-right: 0;
+  padding-left: 0;
+  border-bottom: 1px solid rgba(25, 25, 25, 0.12);
+  background: transparent;
+}
+
+.mini-app[data-skin="journal"] .task-index {
+  display: none;
+}
+
+.mini-app[data-skin="journal"] .checkmark,
+.mini-app[data-skin="journal"] .task-progress-count {
+  border: 1.5px solid #1b1b1b;
+  border-radius: 50%;
+  background: transparent;
+  color: #1b1b1b;
+}
+
+.mini-app[data-skin="journal"] .task-card.is-done .checkmark,
+.mini-app[data-skin="journal"]
+  .task-card.has-occurrences.is-done
+  .task-progress-count {
+  background: #1b1b1b;
+  color: white;
+}
+
+.mini-app[data-skin="journal"] .bottom-nav {
+  border-top-color: rgba(25, 25, 25, 0.14);
+  background: rgba(255, 250, 244, 0.92);
+}
+
+.mini-app[data-skin="journal"] .bottom-nav button {
+  border-right-color: rgba(25, 25, 25, 0.12);
+}
+
+.mini-app[data-skin="journal"] .bottom-nav button.active {
+  background: #1b1b1b;
+}
+
+.mini-app[data-skin="journal"] .skin-menu,
+.mini-app[data-skin="journal"] .skin-menu button,
+.mini-app[data-skin="journal"] .task-modal {
+  border-radius: 16px;
+}
+
+/* Reference 04 — cross-stitch pixel garden */
+.mini-app[data-skin="pixel"] {
+  border: 2px solid #082617;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.22) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.22) 1px, transparent 1px),
+    var(--paper);
+  background-size: 8px 8px;
+  box-shadow: 8px 8px 0 #082617;
+  font-family: "Courier New", "PingFang SC", monospace;
+}
+
+.mini-app[data-skin="pixel"] .technical-strip {
+  border-width: 2px;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.24) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.24) 1px, transparent 1px),
+    #aac9b0;
+  background-size: 8px 8px;
+}
+
+.mini-app[data-skin="pixel"] .hero-title {
+  min-height: 220px;
+  padding: 28px 16px 14px;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.22) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.22) 1px, transparent 1px),
+    linear-gradient(
+      135deg,
+      #d6e8dc 0 25%,
+      #a5c2a4 25% 50%,
+      #709064 50% 75%,
+      #d6e8dc 75%
+    );
+  background-size:
+    8px 8px,
+    8px 8px,
+    64px 64px;
+  image-rendering: pixelated;
+}
+
+.mini-app[data-skin="pixel"] .hero-title::before,
+.mini-app[data-skin="pixel"] .hero-title::after {
+  color: #082617;
+}
+
+.mini-app[data-skin="pixel"] .hero-title h1 {
+  color: #082617;
+  font-family:
+    "Courier New", "PingFang SC", monospace;
+  font-size: clamp(50px, 13vw, 68px);
+  font-weight: 900;
+  letter-spacing: -0.08em;
+  text-shadow:
+    3px 0 #d6e8dc,
+    0 3px #d6e8dc,
+    3px 3px #d6e8dc;
+}
+
+.mini-app[data-skin="pixel"] .today-overview,
+.mini-app[data-skin="pixel"] .week-navigator,
+.mini-app[data-skin="pixel"] .week-ruler {
+  border-width: 2px;
+  background: rgba(211, 231, 216, 0.92);
+}
+
+.mini-app[data-skin="pixel"] .task-section {
+  padding: 10px;
+  background: transparent;
+}
+
+.mini-app[data-skin="pixel"] .task-list {
+  display: grid;
+  gap: 8px;
+  border: 0;
+}
+
+.mini-app[data-skin="pixel"] .task-card {
+  min-height: 84px;
+  border: 2px solid #082617;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.18) 1px, transparent 1px),
+    rgba(211, 231, 216, 0.94);
+  background-size: 8px 8px;
+  box-shadow: 4px 4px 0 #082617;
+}
+
+.mini-app[data-skin="pixel"] .task-card.has-occurrences::before {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.2) 1px, transparent 1px),
+    #789663;
+  background-size: 8px 8px;
+}
+
+.mini-app[data-skin="pixel"] .checkmark,
+.mini-app[data-skin="pixel"] .task-progress-count,
+.mini-app[data-skin="pixel"] .room-filters button,
+.mini-app[data-skin="pixel"] .skin-menu,
+.mini-app[data-skin="pixel"] .skin-menu button,
+.mini-app[data-skin="pixel"] .task-modal {
+  border-width: 2px;
+  border-radius: 0;
+}
+
+.mini-app[data-skin="pixel"] .bottom-nav {
+  border-top: 2px solid #082617;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.2) 1px, transparent 1px),
+    #bfd8c5;
+  background-size: 8px 8px;
+}
+
+.mini-app[data-skin="pixel"] .skin-menu {
+  box-shadow: 6px 6px 0 #082617;
 }
 
 @keyframes fade-in {
