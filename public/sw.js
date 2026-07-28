@@ -1,14 +1,16 @@
 const CACHE_VERSION = "household-archive-v1";
+const SCOPE_PATH = new URL(self.registration.scope).pathname.replace(/\/$/, "");
+const scoped = (path) => `${SCOPE_PATH}${path}`;
 const CORE_ASSETS = [
-  "/",
-  "/manifest-imagine.webmanifest",
-  "/manifest-industrial.webmanifest",
-  "/manifest-journal.webmanifest",
-  "/manifest-pixel.webmanifest",
-  "/icons/imagine-192.png",
-  "/icons/industrial-192.png",
-  "/icons/journal-192.png",
-  "/icons/pixel-192.png",
+  scoped("/"),
+  scoped("/manifest-imagine.webmanifest"),
+  scoped("/manifest-industrial.webmanifest"),
+  scoped("/manifest-journal.webmanifest"),
+  scoped("/manifest-pixel.webmanifest"),
+  scoped("/icons/imagine-192.png"),
+  scoped("/icons/industrial-192.png"),
+  scoped("/icons/journal-192.png"),
+  scoped("/icons/pixel-192.png"),
 ];
 
 self.addEventListener("install", (event) => {
@@ -48,10 +50,12 @@ self.addEventListener("fetch", (event) => {
       fetch(request)
         .then((response) => {
           const copy = response.clone();
-          caches.open(CACHE_VERSION).then((cache) => cache.put("/", copy));
+          caches
+            .open(CACHE_VERSION)
+            .then((cache) => cache.put(scoped("/"), copy));
           return response;
         })
-        .catch(() => caches.match("/")),
+        .catch(() => caches.match(scoped("/"))),
     );
     return;
   }
