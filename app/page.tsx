@@ -147,8 +147,8 @@ const skins: Array<{
   label: string;
   description: string;
 }> = [
-  { id: "imagine", label: "想象粉", description: "趣味漂浮 / 高饱和" },
-  { id: "industrial", label: "极简工艺", description: "黑白分栏 / 大留白" },
+  { id: "imagine", label: "蓝图档案", description: "技术网格 / 档案系统" },
+  { id: "industrial", label: "极简工艺", description: "色块分区 / 大留白" },
   { id: "journal", label: "晨光手账", description: "柔和渐变 / 日常记录" },
   { id: "pixel", label: "像素花园", description: "十字绣网格 / 森林色" },
 ];
@@ -422,7 +422,7 @@ export default function Home() {
       const savedSkin = window.localStorage.getItem("household-archive-skin");
       const migratedSkin =
         savedSkin === "blueprint"
-          ? "industrial"
+          ? "imagine"
           : savedSkin === "warm"
             ? "journal"
             : savedSkin === "forest"
@@ -883,41 +883,38 @@ export default function Home() {
     <header className={`app-header app-header-${skin}`}>
       {skin === "imagine" && (
         <>
-          <div className="imagine-topbar">
+          <div className="technical-strip blueprint-strip">
             <div>
-              <strong>家务想象局</strong>
-              <small>HOUSEWORK LAB</small>
+              <span>档案编号</span>
+              <strong>
+                H.A—{selectedDayMeta.year}—
+                {String(selectedDayMeta.month).padStart(2, "0")}
+              </strong>
             </div>
-            {skinPicker}
+            <div>
+              <span>年度周次</span>
+              <strong>
+                第 {String(annualWeekNumber).padStart(2, "0")} 周 / 周
+                {selectedDay}
+              </strong>
+            </div>
+            <div className="skin-cell">
+              <span>更新日期</span>
+              <strong>
+                {String(selectedDayMeta.month).padStart(2, "0")}.
+                {selectedDayMeta.date}.{selectedDayMeta.year}
+              </strong>
+              {skinPicker}
+            </div>
           </div>
-          <div className="imagine-landing">
-            <span className="imagine-orbit imagine-orbit-eye" aria-hidden="true">
-              ◉
-            </span>
-            <span
-              className="imagine-orbit imagine-orbit-flower"
-              aria-hidden="true"
-            >
-              ✿
-            </span>
-            <span
-              className="imagine-orbit imagine-orbit-dot"
-              aria-hidden="true"
-            >
-              ●
-            </span>
-            <p>
-              {selectedDateHeading} / W
-              {String(annualWeekNumber).padStart(2, "0")}
-            </p>
-            <h1>
-              {pageTitle}
-              <b>。</b>
-            </h1>
-            <small>
-              {doneCount}/{selectedDayTasks.length} 项完成 ·
-              把今天变成轻松的一格
-            </small>
+
+          <div className="hero-title blueprint-landing">
+            <p>HOUSEHOLD ARCHIVE / 家庭维护系统</p>
+            <h1>{pageTitle}</h1>
+            <div className="title-footer">
+              <span>ARCHIVE_VOL.01</span>
+              <span>GRID UNIT: 10MM</span>
+            </div>
           </div>
         </>
       )}
@@ -1014,22 +1011,35 @@ export default function Home() {
 
   const todayDashboard =
     skin === "imagine" ? (
-      <section className="skin-dashboard imagine-dashboard" aria-label="今日概览">
-        <article>
-          <small>今日进度</small>
-          <strong>{progress}%</strong>
-          <span>完成一点，也算向前</span>
-        </article>
-        <article>
-          <small>剩余时间</small>
-          <strong>{remainingMinutes}</strong>
-          <span>MIN / 分钟</span>
-        </article>
-        <article>
-          <small>先做这个</small>
-          <strong>{priorityCount}</strong>
-          <span>项优先任务</span>
-        </article>
+      <section className="today-overview blueprint-overview" aria-label="今日概览">
+        <div
+          className="progress-dial"
+          style={{
+            background: `conic-gradient(var(--blue) ${progress}%, rgba(var(--accent-rgb), 0.12) ${progress}% 100%)`,
+          }}
+          aria-label={`${pageTitle}进度 ${progress}%`}
+        >
+          <div>
+            <strong>
+              {doneCount}
+              <small>/{selectedDayTasks.length}</small>
+            </strong>
+            <span>已完成</span>
+          </div>
+        </div>
+        <div className="overview-copy">
+          <div className="section-kicker">
+            <span>01</span>
+            <p>{isActualToday ? "TODAY'S OPERATION" : "SELECTED DAY OPERATION"}</p>
+          </div>
+          <h2>{selectedDateHeading}</h2>
+          <p>
+            预计剩余 {remainingMinutes} 分钟 · 优先处理 {priorityCount} 项
+          </p>
+          <div className="progress-line">
+            <i style={{ width: `${progress}%` }} />
+          </div>
+        </div>
       </section>
     ) : skin === "industrial" ? (
       <section

@@ -76,17 +76,17 @@ button {
 }
 
 .mini-app[data-skin="imagine"] {
-  --blue: #ef351e;
-  --blue-dark: #bd2515;
-  --accent-rgb: 239, 53, 30;
-  --ink: #2c1029;
-  --paper: #f28aef;
-  --paper-deep: #dd65d9;
-  --paper-rgb: 242, 138, 239;
-  --panel-rgb: 247, 171, 244;
-  --line: rgba(var(--accent-rgb), 0.34);
-  --fine-line: rgba(91, 25, 87, 0.13);
-  --muted: #6d3569;
+  --blue: #123fc8;
+  --blue-dark: #0a2b9d;
+  --accent-rgb: 18, 63, 200;
+  --ink: #0c1730;
+  --paper: #f4f4f1;
+  --paper-deep: #e9ebed;
+  --paper-rgb: 244, 244, 241;
+  --panel-rgb: 241, 241, 239;
+  --line: rgba(var(--accent-rgb), 0.26);
+  --fine-line: rgba(var(--accent-rgb), 0.11);
+  --muted: #65708a;
 }
 
 .mini-app[data-skin="industrial"] {
@@ -286,11 +286,12 @@ button {
 }
 
 .skin-preview-imagine {
-  border-radius: 12px;
   background:
-    radial-gradient(circle at 68% 28%, #f02f1d 0 6px, transparent 7px),
-    linear-gradient(15deg, transparent 43%, #f02f1d 44% 56%, transparent 57%),
-    #f18bed;
+    linear-gradient(rgba(18, 63, 200, 0.22) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(18, 63, 200, 0.22) 1px, transparent 1px),
+    linear-gradient(#123fc8 0 3px, transparent 3px),
+    #f4f4f1;
+  background-size: 8px 8px, 8px 8px, 100% 100%;
 }
 
 .skin-preview-industrial {
@@ -3542,6 +3543,559 @@ button {
   border-right: 2px solid #082617;
 }
 
+/* Revision — restore the original blueprint and remove outlines from craft */
+.mini-app[data-skin="imagine"] {
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  background:
+    linear-gradient(var(--fine-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--fine-line) 1px, transparent 1px),
+    var(--paper);
+  background-size: 16px 16px;
+  box-shadow: 0 18px 60px rgba(12, 23, 48, 0.18);
+}
+
+.mini-app[data-skin="imagine"] .blueprint-strip {
+  min-height: 82px;
+  border-color: var(--blue);
+  background: rgba(var(--panel-rgb), 0.94);
+}
+
+.mini-app[data-skin="imagine"] .blueprint-strip > div {
+  border-right: 1px solid var(--line);
+}
+
+.mini-app[data-skin="imagine"] .blueprint-strip > div:last-child {
+  border-right: 0;
+}
+
+.blueprint-strip .skin-cell {
+  position: relative;
+  z-index: 40;
+}
+
+.blueprint-strip .skin-picker {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  margin-top: 6px;
+  padding: 0;
+  border: 0;
+}
+
+.blueprint-strip .skin-switcher {
+  min-height: 28px;
+  padding: 4px 0 4px 6px;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: transparent;
+  color: var(--blue);
+}
+
+.mini-app[data-skin="imagine"] .blueprint-landing {
+  display: block;
+  min-height: 178px;
+  padding: 18px 16px 8px;
+  background:
+    linear-gradient(rgba(var(--accent-rgb), 0.26) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--accent-rgb), 0.26) 1px, transparent 1px),
+    linear-gradient(rgba(var(--accent-rgb), 0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--accent-rgb), 0.09) 1px, transparent 1px),
+    linear-gradient(
+      45deg,
+      transparent 49.7%,
+      rgba(var(--accent-rgb), 0.075) 49.85%,
+      rgba(var(--accent-rgb), 0.075) 50.15%,
+      transparent 50.3%
+    ),
+    var(--paper);
+  background-position:
+    -1px -1px,
+    -1px -1px,
+    -1px -1px,
+    -1px -1px,
+    0 0;
+  background-size:
+    60px 60px,
+    60px 60px,
+    12px 12px,
+    12px 12px,
+    240px 240px;
+  text-align: left;
+}
+
+.mini-app[data-skin="imagine"] .blueprint-landing::before,
+.mini-app[data-skin="imagine"] .blueprint-landing::after {
+  display: block;
+  color: var(--blue);
+}
+
+.mini-app[data-skin="imagine"] .blueprint-landing > p {
+  margin: 13px 0 27px;
+  color: var(--blue);
+}
+
+.mini-app[data-skin="imagine"] .blueprint-landing h1 {
+  margin: 0 0 -2px;
+  color: var(--blue);
+  font-family: "Songti SC", "STSong", "Noto Serif CJK SC", Georgia, serif;
+  font-size: clamp(52px, 14vw, 72px);
+  font-weight: 600;
+  letter-spacing: -0.07em;
+  line-height: 0.95;
+  text-align: left;
+  text-shadow: none;
+  transform: none;
+}
+
+.mini-app[data-skin="imagine"] .blueprint-landing .title-footer {
+  width: auto;
+  margin-top: 0;
+}
+
+.mini-app[data-skin="imagine"] .blueprint-overview {
+  margin: 0;
+  border: 0;
+  border-bottom: 1px solid var(--blue);
+  border-radius: 0;
+  background: rgba(var(--paper-rgb), 0.84);
+}
+
+.mini-app[data-skin="imagine"] .week-navigator,
+.mini-app[data-skin="imagine"] .week-ruler {
+  margin: 0;
+  border: 0;
+  border-bottom: 1px solid var(--blue);
+  border-radius: 0;
+  background: rgba(var(--paper-rgb), 0.9);
+}
+
+.mini-app[data-skin="imagine"] .task-section {
+  padding: 0;
+  background: rgba(var(--paper-rgb), 0.8);
+}
+
+.mini-app[data-skin="imagine"] .filter-heading {
+  margin: 0;
+  padding: 16px 16px 11px;
+}
+
+.mini-app[data-skin="imagine"] .filter-heading > div > span {
+  color: var(--ink);
+  font-family: "Songti SC", "STSong", serif;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.mini-app[data-skin="imagine"] .add-inline {
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--blue);
+}
+
+.mini-app[data-skin="imagine"] .room-filters {
+  gap: 6px;
+  padding: 0 16px 14px;
+}
+
+.mini-app[data-skin="imagine"] .task-list {
+  display: block;
+  gap: 0;
+  padding: 0;
+  border-top: 1px solid var(--blue);
+}
+
+.mini-app[data-skin="imagine"] .task-card {
+  min-height: 76px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: rgba(var(--paper-rgb), 0.72);
+  box-shadow: none;
+  transform: none;
+}
+
+.mini-app[data-skin="imagine"] .checkmark,
+.mini-app[data-skin="imagine"] .task-progress-count,
+.mini-app[data-skin="imagine"] .room-filters button,
+.mini-app[data-skin="imagine"] .skin-menu,
+.mini-app[data-skin="imagine"] .skin-menu button,
+.mini-app[data-skin="imagine"] .task-modal {
+  border-radius: 0;
+}
+
+.mini-app[data-skin="imagine"] .week-view,
+.mini-app[data-skin="imagine"] .archive-view {
+  padding: 0;
+  background: rgba(var(--paper-rgb), 0.82);
+}
+
+.mini-app[data-skin="imagine"] .page-heading,
+.mini-app[data-skin="imagine"] .period-switch,
+.mini-app[data-skin="imagine"] .cycle-overview,
+.mini-app[data-skin="imagine"] .cycle-ruler,
+.mini-app[data-skin="imagine"] .cycle-list,
+.mini-app[data-skin="imagine"] .stat-grid,
+.mini-app[data-skin="imagine"] .room-index {
+  margin-top: 0;
+  border: 0;
+  border-bottom: 1px solid var(--blue);
+  border-radius: 0;
+  background: rgba(var(--paper-rgb), 0.86);
+  box-shadow: none;
+}
+
+.mini-app[data-skin="imagine"] .period-switch button {
+  border-right: 1px solid var(--line);
+}
+
+.mini-app[data-skin="imagine"] .period-switch button.active {
+  background: var(--blue);
+}
+
+.mini-app[data-skin="imagine"] .page-heading h2 {
+  color: var(--ink);
+  font-size: 42px;
+  font-weight: 600;
+  letter-spacing: -0.05em;
+}
+
+.mini-app[data-skin="imagine"] .bottom-nav {
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 70px;
+  border: 0;
+  border-top: 1px solid var(--blue);
+  border-radius: 0;
+  background: rgba(var(--paper-rgb), 0.96);
+  box-shadow: none;
+}
+
+.mini-app[data-skin="imagine"] .bottom-nav button {
+  margin: 0;
+  border-right: 1px solid var(--line);
+  border-radius: 0;
+}
+
+.mini-app[data-skin="imagine"] .bottom-nav button.active {
+  margin: 0;
+  background: var(--blue);
+}
+
+.mini-app[data-skin="industrial"] {
+  border: 0;
+  background: #e9e9e6;
+  box-shadow: 0 18px 60px rgba(17, 17, 17, 0.14);
+}
+
+.mini-app[data-skin="industrial"] .app-header {
+  border: 0;
+  background: #e9e9e6;
+}
+
+.mini-app[data-skin="industrial"] .industrial-masthead {
+  gap: 8px;
+  padding: 8px;
+  border: 0;
+  background: #e9e9e6;
+}
+
+.mini-app[data-skin="industrial"] .industrial-masthead > * {
+  border: 0;
+  background: #f8f8f6;
+}
+
+.mini-app[data-skin="industrial"] .industrial-masthead .skin-switcher {
+  border: 0;
+  background: #111;
+}
+
+.mini-app[data-skin="industrial"] .skin-menu {
+  padding: 8px;
+  border: 0;
+  background: #e9e9e6;
+  box-shadow: 8px 8px 0 #111;
+}
+
+.mini-app[data-skin="industrial"] .skin-menu button {
+  border: 0;
+  background: #f8f8f6;
+}
+
+.mini-app[data-skin="industrial"] .skin-menu button.active {
+  background: #111;
+}
+
+.mini-app[data-skin="industrial"] .industrial-landing {
+  gap: 8px;
+  padding: 0 8px 8px;
+  background: #e9e9e6;
+}
+
+.mini-app[data-skin="industrial"] .industrial-landing > div {
+  border: 0;
+  background: #f8f8f6;
+}
+
+.mini-app[data-skin="industrial"] .industrial-landing .industrial-hero-stat {
+  background: #111;
+}
+
+.mini-app[data-skin="industrial"] .industrial-dashboard {
+  gap: 8px;
+  padding: 0 8px 8px;
+  border: 0;
+  background: #e9e9e6;
+}
+
+.mini-app[data-skin="industrial"] .industrial-progress-block,
+.mini-app[data-skin="industrial"] .industrial-metrics {
+  border: 0;
+  background: #f8f8f6;
+}
+
+.mini-app[data-skin="industrial"] .week-navigator {
+  gap: 8px;
+  padding: 8px;
+  border: 0;
+  background: #e9e9e6;
+}
+
+.mini-app[data-skin="industrial"] .week-navigator > button {
+  border: 0;
+  background: #f8f8f6;
+}
+
+.mini-app[data-skin="industrial"] .week-navigator > button:last-child {
+  border: 0;
+}
+
+.mini-app[data-skin="industrial"] .week-ruler,
+.mini-app[data-skin="industrial"] .week-grid {
+  gap: 6px;
+  padding: 0 8px 8px;
+  border: 0;
+  background: #e9e9e6;
+}
+
+.mini-app[data-skin="industrial"] .week-ruler > button,
+.mini-app[data-skin="industrial"] .week-grid > button {
+  border: 0;
+  background: #f8f8f6;
+}
+
+.mini-app[data-skin="industrial"] .week-ruler > button.current,
+.mini-app[data-skin="industrial"] .week-grid > button.current {
+  background: #111;
+}
+
+.mini-app[data-skin="industrial"] .task-section {
+  background: #e9e9e6;
+}
+
+.mini-app[data-skin="industrial"] .filter-heading {
+  margin: 0 8px;
+  border: 0;
+  background: #f8f8f6;
+}
+
+.mini-app[data-skin="industrial"] .room-filters {
+  gap: 6px;
+  margin: 0;
+  padding: 8px;
+  border: 0;
+  background: #e9e9e6;
+}
+
+.mini-app[data-skin="industrial"] .room-filters button {
+  min-height: 42px;
+  border: 0;
+  background: #f8f8f6;
+}
+
+.mini-app[data-skin="industrial"] .room-filters button.active {
+  background: #111;
+}
+
+.mini-app[data-skin="industrial"] .task-list {
+  display: grid;
+  gap: 8px;
+  padding: 0 8px 8px;
+  border: 0;
+  background: #e9e9e6;
+}
+
+.mini-app[data-skin="industrial"] .task-card {
+  border: 0;
+  background: #f8f8f6;
+}
+
+.mini-app[data-skin="industrial"] .task-index {
+  border: 0;
+}
+
+.mini-app[data-skin="industrial"] .checkmark,
+.mini-app[data-skin="industrial"] .task-progress-count {
+  border: 0;
+  background: #dededb;
+}
+
+.mini-app[data-skin="industrial"] .task-card.has-occurrences::before {
+  border: 0;
+  background: #d6d6d2;
+}
+
+.mini-app[data-skin="industrial"] .section-kicker span {
+  border: 0;
+  background: #111;
+  color: white;
+}
+
+.mini-app[data-skin="industrial"] .schedule-table {
+  padding: 8px;
+  border: 0;
+  background: #e9e9e6;
+}
+
+.mini-app[data-skin="industrial"] .schedule-head {
+  margin-bottom: 8px;
+  background: #111;
+}
+
+.mini-app[data-skin="industrial"] .schedule-head span,
+.mini-app[data-skin="industrial"] .schedule-row,
+.mini-app[data-skin="industrial"] .schedule-row > * {
+  border: 0;
+}
+
+.mini-app[data-skin="industrial"] .schedule-row {
+  gap: 6px;
+  margin-top: 6px;
+  background: transparent;
+}
+
+.mini-app[data-skin="industrial"] .schedule-row > * {
+  background: #f8f8f6;
+}
+
+.mini-app[data-skin="industrial"] .blue-note {
+  margin: 8px;
+  border: 0;
+  background: #111;
+}
+
+.mini-app[data-skin="industrial"] .week-view,
+.mini-app[data-skin="industrial"] .archive-view {
+  padding: 8px;
+  background: #e9e9e6;
+}
+
+.mini-app[data-skin="industrial"] .page-heading {
+  border: 0;
+  background: #f8f8f6;
+}
+
+.mini-app[data-skin="industrial"] .period-switch {
+  gap: 8px;
+  padding: 8px 0;
+  border: 0;
+  background: #e9e9e6;
+}
+
+.mini-app[data-skin="industrial"] .period-switch button {
+  border: 0;
+  background: #f8f8f6;
+}
+
+.mini-app[data-skin="industrial"] .period-switch button.active {
+  background: #111;
+}
+
+.mini-app[data-skin="industrial"] .cycle-overview,
+.mini-app[data-skin="industrial"] .cycle-ruler,
+.mini-app[data-skin="industrial"] .cycle-list,
+.mini-app[data-skin="industrial"] .stat-grid,
+.mini-app[data-skin="industrial"] .room-index {
+  gap: 8px;
+  margin-top: 8px;
+  border: 0;
+  background: #e9e9e6;
+}
+
+.mini-app[data-skin="industrial"] .cycle-overview > div,
+.mini-app[data-skin="industrial"] .cycle-ruler > div,
+.mini-app[data-skin="industrial"] .cycle-item,
+.mini-app[data-skin="industrial"] .stat-grid article,
+.mini-app[data-skin="industrial"] .index-row {
+  border: 0;
+  background: #f8f8f6;
+}
+
+.mini-app[data-skin="industrial"] .cycle-overview > div:first-child,
+.mini-app[data-skin="industrial"] .cycle-list-head,
+.mini-app[data-skin="industrial"] .index-title {
+  border: 0;
+  background: #111;
+  color: white;
+}
+
+.mini-app[data-skin="industrial"] .cycle-overview > div:first-child > *,
+.mini-app[data-skin="industrial"] .index-title > * {
+  color: white;
+}
+
+.mini-app[data-skin="industrial"] .cycle-check,
+.mini-app[data-skin="industrial"] .cycle-item-copy,
+.mini-app[data-skin="industrial"] .cycle-code,
+.mini-app[data-skin="industrial"] .index-row > *,
+.mini-app[data-skin="industrial"] .stat-grid article {
+  border: 0;
+}
+
+.mini-app[data-skin="industrial"] .reset-button {
+  border: 0;
+  background: #f8f8f6;
+  color: #111;
+}
+
+.mini-app[data-skin="industrial"] .bottom-nav {
+  gap: 8px;
+  padding: 8px;
+  border: 0;
+  background: #e9e9e6;
+}
+
+.mini-app[data-skin="industrial"] .bottom-nav button {
+  padding-left: 14px;
+  border: 0;
+  background: #f8f8f6;
+}
+
+.mini-app[data-skin="industrial"] .bottom-nav button.active {
+  background: #111;
+}
+
+.mini-app[data-skin="industrial"] .task-modal {
+  border: 0;
+  background: #f8f8f6;
+}
+
+.mini-app[data-skin="industrial"] .task-modal input,
+.mini-app[data-skin="industrial"] .task-modal select,
+.mini-app[data-skin="industrial"] .task-modal button {
+  border-width: 0;
+}
+
+.mini-app[data-skin="industrial"] .task-modal input,
+.mini-app[data-skin="industrial"] .task-modal select {
+  background: #e9e9e6;
+}
+
 @keyframes fade-in {
   from {
     opacity: 0;
@@ -3609,11 +4163,15 @@ button {
     display: none;
   }
 
-  .imagine-topbar,
   .journal-topbar,
   .pixel-topbar {
     min-height: calc(66px + var(--top-shell-inset));
     padding-top: calc(12px + var(--top-shell-inset));
+  }
+
+  .blueprint-strip {
+    min-height: calc(58px + var(--top-shell-inset));
+    padding-top: var(--top-shell-inset);
   }
 
   .industrial-masthead {
@@ -3633,7 +4191,6 @@ button {
     min-height: 42px;
   }
 
-  .imagine-landing,
   .pixel-landing {
     min-height: 270px;
   }
@@ -3688,7 +4245,6 @@ button {
     padding-left: var(--safe-left);
   }
 
-  .mini-app[data-skin="imagine"] .bottom-nav,
   .mini-app[data-skin="journal"] .bottom-nav,
   .mini-app[data-skin="pixel"] .bottom-nav {
     height: calc(64px + var(--safe-bottom));
