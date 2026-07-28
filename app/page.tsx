@@ -149,7 +149,7 @@ const skins: Array<{
 }> = [
   { id: "imagine", label: "蓝图档案", description: "技术网格 / 档案系统" },
   { id: "industrial", label: "极简工艺", description: "色块分区 / 大留白" },
-  { id: "journal", label: "晨光手账", description: "柔和渐变 / 日常记录" },
+  { id: "journal", label: "晨光手账", description: "大圆角 / 彩色卡片" },
   { id: "pixel", label: "像素花园", description: "十字绣网格 / 森林色" },
 ];
 const allWeekDays: WeekDay[] = ["一", "二", "三", "四", "五", "六", "日"];
@@ -1048,10 +1048,11 @@ export default function Home() {
               <span>年度周</span>
             </div>
             <div className="journal-heading">
-              <span>连续记录 · 06 天</span>
-              <h1>{pageTitle}</h1>
+              <span>轻触 · HOUSEHOLD</span>
+              <h1>{isActualToday ? "嗨，今天照顾什么？" : pageTitle}</h1>
               <p>
-                ✓ {doneCount}/{selectedDayTasks.length} 个任务 · 进度 {progress}%
+                {pageTitle} · {doneCount}/{selectedDayTasks.length} 个任务 ·
+                进度 {progress}%
               </p>
             </div>
             <div className="journal-micro-grid" aria-hidden="true">
@@ -1162,9 +1163,9 @@ export default function Home() {
     ) : skin === "journal" ? (
       <section className="skin-dashboard journal-dashboard" aria-label="今日概览">
         <div>
-          <small>今天的微目标</small>
-          <strong>让家里轻一点</strong>
-          <p>预计还需 {remainingMinutes} 分钟，优先处理 {priorityCount} 项</p>
+          <small>● 家务提醒 · 刚刚</small>
+          <strong>让家里轻一点。</strong>
+          <p>预计还需 {remainingMinutes} 分钟，优先处理 {priorityCount} 项任务</p>
         </div>
         <span className="journal-completion">
           <b>{doneCount}</b> / {selectedDayTasks.length}
