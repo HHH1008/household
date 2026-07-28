@@ -23,6 +23,10 @@ type CalendarDay = {
   dateKey: string;
   current: boolean;
 };
+type InstallPromptEvent = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+};
 
 type Task = {
   id: string;
@@ -462,6 +466,26 @@ function getCompletionKey(dateKey: string, taskId: string) {
   return `${dateKey}:${taskId}`;
 }
 
+function updatePwaSkinAssets(nextSkin: Skin) {
+  const themeColors: Record<Skin, string> = {
+    imagine: "#f4f4f1",
+    industrial: "#f5f5f3",
+    journal: "#eceff2",
+    pixel: "#d6e3d5",
+  };
+
+  document.documentElement.dataset.startupSkin = nextSkin;
+  document
+    .getElementById("pwa-manifest")
+    ?.setAttribute("href", `/manifest-${nextSkin}.webmanifest`);
+  document
+    .getElementById("pwa-apple-icon")
+    ?.setAttribute("href", `/icons/${nextSkin}-180.png`);
+  document
+    .getElementById("pwa-theme-color")
+    ?.setAttribute("content", themeColors[nextSkin]);
+}
+
 export default function Home() {
   const appScrollRef = useRef<HTMLElement>(null);
   const [activeTab, setActiveTab] = useState<Tab>("today");
@@ -488,6 +512,10 @@ export default function Home() {
   const [newLongTermYear, setNewLongTermYear] = useState(2026);
   const [newLongTermMonth, setNewLongTermMonth] = useState(8);
   const [newLongTermDay, setNewLongTermDay] = useState(7);
+  const [installPrompt, setInstallPrompt] =
+    useState<InstallPromptEvent | null>(null);
+  const [isInstallHelpOpen, setIsInstallHelpOpen] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
@@ -515,12 +543,52 @@ export default function Home() {
               ? "pixel"
               : savedSkin;
       if (skins.some((item) => item.id === migratedSkin)) {
-        setSkin(migratedSkin as Skin);
+        const restoredSkin = migratedSkin as Skin;
+        setSkin(restoredSkin);
+        updatePwaSkinAssets(restoredSkin);
       }
       setCustomTasks(readStoredTasks());
     } catch {
       // The app remains fully usable when browser storage is unavailable.
     }
+  }, []);
+
+  useEffect(() => {
+    const navigatorWithStandalone = window.navigator as Navigator & {
+      standalone?: boolean;
+    };
+    const displayMode = window.matchMedia("(display-mode: standalone)");
+    const syncStandaloneState = () =>
+      setIsStandalone(
+        displayMode.matches || navigatorWithStandalone.standalone === true,
+      );
+    const captureInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setInstallPrompt(event as InstallPromptEvent);
+    };
+    const handleInstalled = () => {
+      setInstallPrompt(null);
+      setIsStandalone(true);
+      setNotice("已安装到手机桌面");
+      window.setTimeout(() => setNotice(""), 1800);
+    };
+
+    syncStandaloneState();
+    displayMode.addEventListener?.("change", syncStandaloneState);
+    window.addEventListener("beforeinstallprompt", captureInstallPrompt);
+    window.addEventListener("appinstalled", handleInstalled);
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch(() => {
+        // Online use remains available if the browser blocks offline caching.
+      });
+    }
+
+    return () => {
+      displayMode.removeEventListener?.("change", syncStandaloneState);
+      window.removeEventListener("beforeinstallprompt", captureInstallPrompt);
+      window.removeEventListener("appinstalled", handleInstalled);
+    };
   }, []);
 
   useEffect(() => {
@@ -712,8 +780,28 @@ export default function Home() {
     setSkin(nextSkin);
     setIsSkinMenuOpen(false);
     window.localStorage.setItem("household-archive-skin", nextSkin);
+    updatePwaSkinAssets(nextSkin);
     setNotice(`已切换为${nextSkinMeta?.label}皮肤`);
     window.setTimeout(() => setNotice(""), 1800);
+  }
+
+  async function installApp() {
+    if (isStandalone) {
+      setNotice("私人版本已经安装在当前设备");
+      window.setTimeout(() => setNotice(""), 1800);
+      return;
+    }
+
+    if (installPrompt) {
+      await installPrompt.prompt();
+      const choice = await installPrompt.userChoice;
+      if (choice.outcome === "accepted") {
+        setInstallPrompt(null);
+      }
+      return;
+    }
+
+    setIsInstallHelpOpen(true);
   }
 
   function openToday() {
@@ -1678,6 +1766,30 @@ export default function Home() {
                 ))}
               </div>
 
+              <section className="install-panel" aria-label="安装私人版本">
+                <img
+                  alt=""
+                  height="72"
+                  src={`/icons/${skin}-192.png`}
+                  width="72"
+                />
+                <div>
+                  <strong>
+                    {isStandalone ? "私人版本已安装" : "安装到手机桌面"}
+                  </strong>
+                  <p>
+                    {isStandalone
+                      ? "当前已作为独立 App 运行，任务数据只保存在本机。"
+                      : `图标与启动页将使用“${
+                          skins.find((item) => item.id === skin)?.label
+                        }”皮肤。`}
+                  </p>
+                </div>
+                <button onClick={installApp} type="button">
+                  {isStandalone ? "已安装" : "安装"}
+                </button>
+              </section>
+
               <button className="reset-button" onClick={resetArchive} type="button">
                 重置本周打卡
               </button>
@@ -1978,6 +2090,81 @@ export default function Home() {
                 </button>
               </div>
             </form>
+          </div>
+        )}
+
+        {isInstallHelpOpen && (
+          <div
+            className="modal-backdrop"
+            onMouseDown={(event) => {
+              if (event.currentTarget === event.target) {
+                setIsInstallHelpOpen(false);
+              }
+            }}
+          >
+            <section
+              aria-labelledby="install-title"
+              aria-modal="true"
+              className="task-modal install-modal"
+              role="dialog"
+            >
+              <div className="sheet-handle" aria-hidden="true" />
+              <div className="modal-head">
+                <div>
+                  <small>私人版本</small>
+                  <h2 id="install-title">安装到 iPhone</h2>
+                </div>
+                <button
+                  aria-label="关闭安装说明"
+                  onClick={() => setIsInstallHelpOpen(false)}
+                  type="button"
+                >
+                  ×
+                </button>
+              </div>
+              <div className="install-guide">
+                <div className="install-skin-preview">
+                  <img
+                    alt={`${skins.find((item) => item.id === skin)?.label}应用图标`}
+                    height="96"
+                    src={`/icons/${skin}-192.png`}
+                    width="96"
+                  />
+                  <p>
+                    当前将安装为
+                    <strong>
+                      {skins.find((item) => item.id === skin)?.label}
+                    </strong>
+                  </p>
+                </div>
+                <ol>
+                  <li>
+                    <span>1</span>
+                    <p>
+                      用 <strong>Safari</strong> 打开当前安装地址
+                    </p>
+                  </li>
+                  <li>
+                    <span>2</span>
+                    <p>轻点浏览器底部的“分享”按钮</p>
+                  </li>
+                  <li>
+                    <span>3</span>
+                    <p>选择“添加到主屏幕”，再确认添加</p>
+                  </li>
+                </ol>
+                <p className="install-limit-note">
+                  启动页会记住最近使用的皮肤。苹果不会自动替换已经安装的桌面图标；换皮肤后若想同步图标，需要删除旧图标再重新添加。
+                </p>
+                <button
+                  className="install-guide-done"
+                  onClick={() => setIsInstallHelpOpen(false)}
+                  type="button"
+                >
+                  我知道了
+                </button>
+              </div>
+            </section>
           </div>
         )}
 
