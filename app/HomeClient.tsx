@@ -158,11 +158,7 @@ const skins: Array<{
   { id: "pixel", label: "像素花园", description: "十字绣网格 / 森林色" },
 ];
 const allWeekDays: WeekDay[] = ["一", "二", "三", "四", "五", "六", "日"];
-const appTodayKey = "2026-08-07";
-const appCurrentWeekStart = "2026-08-03";
-const firstWeekStart = "2025-12-29";
-const lastWeekStart = "2026-12-28";
-const longTermYears = [2026, 2027];
+const hydrationDateKey = "2000-01-03";
 const yearMonths = Array.from({ length: 12 }, (_, index) => index + 1);
 const pixelSceneColumns = 36;
 const pixelSceneRows = 18;
@@ -264,6 +260,19 @@ function formatDateKey(date: Date) {
   ].join("-");
 }
 
+function getLocalDateKey(date = new Date()) {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+
+function getWeekDayFromDateKey(dateKey: string): WeekDay {
+  const weekday = parseDateKey(dateKey).getUTCDay() || 7;
+  return allWeekDays[weekday - 1];
+}
+
 function shiftDateKey(dateKey: string, days: number) {
   const date = parseDateKey(dateKey);
   date.setUTCDate(date.getUTCDate() + days);
@@ -277,7 +286,7 @@ function getWeekStartKey(dateKey: string) {
   return formatDateKey(date);
 }
 
-function buildWeekDays(weekStart: string): CalendarDay[] {
+function buildWeekDays(weekStart: string, todayKey: string): CalendarDay[] {
   const monday = parseDateKey(weekStart);
 
   return allWeekDays.map((day, index) => {
@@ -291,7 +300,7 @@ function buildWeekDays(weekStart: string): CalendarDay[] {
       month: date.getUTCMonth() + 1,
       year: date.getUTCFullYear(),
       dateKey,
-      current: dateKey === appTodayKey,
+      current: dateKey === todayKey,
     };
   });
 }
@@ -320,12 +329,27 @@ function getDaysInMonth(year: number, month: number) {
   return new Date(year, month, 0).getDate();
 }
 
-function getMinimumLongTermDay(year: number, month: number) {
-  return year === 2026 && month === 7 ? 27 : 1;
+function getMinimumLongTermDay(
+  year: number,
+  month: number,
+  todayKey: string,
+) {
+  const today = parseDateKey(todayKey);
+  return year === today.getUTCFullYear() && month === today.getUTCMonth() + 1
+    ? today.getUTCDate()
+    : 1;
 }
 
-function isPastLongTermDate(year: number, month: number, day: number) {
-  return year * 10000 + month * 100 + day < 20260727;
+function isPastLongTermDate(
+  year: number,
+  month: number,
+  day: number,
+  todayKey: string,
+) {
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(
+    2,
+    "0",
+  )}` < todayKey;
 }
 
 function getIsoWeekNumber(year: number, month: number, day: number) {
@@ -496,15 +520,15 @@ export default function Home() {
   const [planPeriod, setPlanPeriod] = useState<PlanPeriod>("week");
   const [skin, setSkin] = useState<Skin>("industrial");
   const [isSkinMenuOpen, setIsSkinMenuOpen] = useState(false);
+  const [todayKey, setTodayKey] = useState(hydrationDateKey);
   const [selectedWeekStart, setSelectedWeekStart] = useState(
-    appCurrentWeekStart,
+    getWeekStartKey(hydrationDateKey),
   );
-  const [selectedDay, setSelectedDay] = useState<WeekDay>("五");
+  const [selectedDay, setSelectedDay] = useState<WeekDay>(
+    getWeekDayFromDateKey(hydrationDateKey),
+  );
   const [activeRoom, setActiveRoom] = useState<Room>("全部");
-  const [completed, setCompleted] = useState<string[]>([
-    "2026-08-05:floor",
-    "2026-08-05:books",
-  ]);
+  const [completed, setCompleted] = useState<string[]>([]);
   const [cycleCompleted, setCycleCompleted] = useState<string[]>([]);
   const [customTasks, setCustomTasks] = useState<Task[]>([]);
   const [isAdding, setIsAdding] = useState(false);
@@ -513,23 +537,59 @@ export default function Home() {
   const [newFrequency, setNewFrequency] = useState("每周 1 次");
   const [newTaskDays, setNewTaskDays] = useState<WeekDay[]>(["五"]);
   const [newMonthDay, setNewMonthDay] = useState(7);
-  const [newLongTermYear, setNewLongTermYear] = useState(2026);
-  const [newLongTermMonth, setNewLongTermMonth] = useState(8);
-  const [newLongTermDay, setNewLongTermDay] = useState(7);
+  const [newLongTermYear, setNewLongTermYear] = useState(2000);
+  const [newLongTermMonth, setNewLongTermMonth] = useState(1);
+  const [newLongTermDay, setNewLongTermDay] = useState(3);
   const [installPrompt, setInstallPrompt] =
     useState<InstallPromptEvent | null>(null);
   const [isInstallHelpOpen, setIsInstallHelpOpen] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
+  const [isCalendarReady, setIsCalendarReady] = useState(false);
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
+    const syncCurrentDate = () => {
+      const nextTodayKey = getLocalDateKey();
+
+      setTodayKey((previousTodayKey) => {
+        if (previousTodayKey === nextTodayKey) return previousTodayKey;
+
+        const previousWeekStart = getWeekStartKey(previousTodayKey);
+        const nextWeekStart = getWeekStartKey(nextTodayKey);
+        setSelectedWeekStart((currentWeekStart) => {
+          if (currentWeekStart !== previousWeekStart) return currentWeekStart;
+          setSelectedDay(getWeekDayFromDateKey(nextTodayKey));
+          return nextWeekStart;
+        });
+
+        return nextTodayKey;
+      });
+      setIsCalendarReady(true);
+    };
+
+    syncCurrentDate();
+    const minuteTimer = window.setInterval(syncCurrentDate, 60_000);
+    window.addEventListener("focus", syncCurrentDate);
+    document.addEventListener("visibilitychange", syncCurrentDate);
+
+    return () => {
+      window.clearInterval(minuteTimer);
+      window.removeEventListener("focus", syncCurrentDate);
+      document.removeEventListener("visibilitychange", syncCurrentDate);
+    };
+  }, []);
+
+  useEffect(() => {
     try {
+      const currentDateKey = getLocalDateKey();
       const saved = window.localStorage.getItem("household-archive-done");
       if (saved) {
         const stored: string[] = JSON.parse(saved);
+        // Device-local records can only be restored after the browser mounts.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setCompleted(
           stored.map((value) =>
-            value.includes(":") ? value : `${appTodayKey}:${value}`,
+            value.includes(":") ? value : `${currentDateKey}:${value}`,
           ),
         );
       }
@@ -614,11 +674,43 @@ export default function Home() {
 
   const tasks = useMemo(() => [...baseTasks, ...customTasks], [customTasks]);
   const weekDays = useMemo(
-    () => buildWeekDays(selectedWeekStart),
-    [selectedWeekStart],
+    () => buildWeekDays(selectedWeekStart, todayKey),
+    [selectedWeekStart, todayKey],
   );
   const selectedDayMeta =
     weekDays.find((item) => item.day === selectedDay) ?? weekDays[4];
+  const todayDate = useMemo(() => parseDateKey(todayKey), [todayKey]);
+  const todayYear = todayDate.getUTCFullYear();
+  const todayMonth = todayDate.getUTCMonth() + 1;
+  const longTermYears = [todayYear, todayYear + 1];
+  const currentWeekStart = getWeekStartKey(todayKey);
+  const currentQuarter = Math.floor((todayMonth - 1) / 3) + 1;
+  const currentHalf = todayMonth <= 6 ? 1 : 2;
+  const quarterLabel = `第${["一", "二", "三", "四"][currentQuarter - 1]}季度`;
+  const halfLabel = currentHalf === 1 ? "上半年" : "下半年";
+  const quarterMonths = Array.from(
+    { length: 3 },
+    (_, index) => (currentQuarter - 1) * 3 + index + 1,
+  );
+  const halfMonths = Array.from(
+    { length: 6 },
+    (_, index) => (currentHalf - 1) * 6 + index + 1,
+  );
+  const activeCyclePlans =
+    planPeriod === "quarter"
+      ? cyclePlans.quarter.map((item, index) => ({
+          ...item,
+          date: `${String(quarterMonths[Math.floor(index / 2)]).padStart(
+            2,
+            "0",
+          )}.${index % 2 === 0 ? "08" : "22"}`,
+        }))
+      : planPeriod === "half"
+        ? cyclePlans.half.map((item, index) => ({
+            ...item,
+            date: `${halfMonths[index]}月`,
+          }))
+        : [];
   const selectedDayTasks = useMemo(
     () => tasks.filter((task) => isTaskScheduled(task, selectedDayMeta)),
     [selectedDayMeta, tasks],
@@ -650,14 +742,89 @@ export default function Home() {
   const priorityCount = selectedDayTasks.filter(
     (task) => task.priority,
   ).length;
+  const archiveYear = selectedDayMeta.year;
+  const archiveMonth = selectedDayMeta.month;
+  const archiveMonthPrefix = `${archiveYear}-${String(archiveMonth).padStart(
+    2,
+    "0",
+  )}-`;
+  const previousArchiveMonthDate = new Date(
+    Date.UTC(archiveYear, archiveMonth - 2, 1),
+  );
+  const previousArchiveMonthPrefix = `${previousArchiveMonthDate.getUTCFullYear()}-${String(
+    previousArchiveMonthDate.getUTCMonth() + 1,
+  ).padStart(2, "0")}-`;
+  const monthlyCompletionKeys = completed.filter((key) =>
+    key.startsWith(archiveMonthPrefix),
+  );
+  const previousMonthlyCompletionCount = completed.filter((key) =>
+    key.startsWith(previousArchiveMonthPrefix),
+  ).length;
+  const monthlyComparison =
+    previousMonthlyCompletionCount > 0
+      ? `${monthlyCompletionKeys.length >= previousMonthlyCompletionCount ? "+" : ""}${Math.round(
+          ((monthlyCompletionKeys.length - previousMonthlyCompletionCount) /
+            previousMonthlyCompletionCount) *
+            100,
+        )}% 较上月`
+      : "本月实时记录";
+  const weekTaskOccurrences = weekDays.flatMap((day) =>
+    tasks
+      .filter((task) => isTaskScheduled(task, day))
+      .map((task) => ({ dateKey: day.dateKey, task })),
+  );
+  const weekCompletedOccurrences = weekTaskOccurrences.filter(({ dateKey, task }) =>
+    completed.includes(getCompletionKey(dateKey, task.id)),
+  ).length;
+  const weekProgress = weekTaskOccurrences.length
+    ? Math.round(
+        (weekCompletedOccurrences / weekTaskOccurrences.length) * 100,
+      )
+    : 0;
+  const completionDates = new Set(completed.map((key) => key.split(":")[0]));
+  let consecutiveDays = 0;
+  let streakCursor = todayKey;
+  while (completionDates.has(streakCursor)) {
+    consecutiveDays += 1;
+    streakCursor = shiftDateKey(streakCursor, -1);
+  }
+  const completedTaskIdsThisMonth = new Set(
+    monthlyCompletionKeys.map((key) => key.slice(key.indexOf(":") + 1)),
+  );
+  const maintainedRoomCount = new Set(
+    tasks
+      .filter((task) => completedTaskIdsThisMonth.has(task.id))
+      .map((task) => task.room),
+  ).size;
+  const roomCategories: Record<Exclude<Room, "全部">, string> = {
+    客厅: "日常维护",
+    厨房: "清洁与消毒",
+    卧室: "除尘与整理",
+    卫生间: "深度清洁",
+    阳台: "收纳与养护",
+  };
+  const roomArchiveRows = rooms.slice(1).map((room, index) => {
+    const typedRoom = room as Exclude<Room, "全部">;
+    const roomTasks = tasks.filter((task) => task.room === typedRoom);
+    const completedRoomTasks = roomTasks.filter((task) =>
+      completedTaskIdsThisMonth.has(task.id),
+    ).length;
+
+    return [
+      String(index + 1).padStart(2, "0"),
+      typedRoom,
+      roomCategories[typedRoom],
+      `${completedRoomTasks}/${roomTasks.length} 项`,
+    ];
+  });
   const annualWeekNumber = getIsoWeekNumber(
     selectedDayMeta.year,
     selectedDayMeta.month,
     Number(selectedDayMeta.date),
   );
-  const isActualToday = selectedDayMeta.dateKey === appTodayKey;
+  const isActualToday = selectedDayMeta.dateKey === todayKey;
   const weekRangeLabel = formatWeekRange(weekDays);
-  const isCurrentWeek = selectedWeekStart === appCurrentWeekStart;
+  const isCurrentWeek = selectedWeekStart === currentWeekStart;
   const pageTitle =
     activeTab === "today"
       ? isActualToday
@@ -696,6 +863,7 @@ export default function Home() {
               newLongTermYear,
               newLongTermMonth,
               newLongTermDay,
+              todayKey,
             );
   const scheduleLegend = isDailyFrequency
     ? "每天执行"
@@ -779,8 +947,8 @@ export default function Home() {
   }
 
   function goToCurrentWeek() {
-    setSelectedWeekStart(appCurrentWeekStart);
-    setSelectedDay("五");
+    setSelectedWeekStart(currentWeekStart);
+    setSelectedDay(getWeekDayFromDateKey(todayKey));
   }
 
   function selectSkin(nextSkin: Skin) {
@@ -832,8 +1000,8 @@ export default function Home() {
 
   function openTaskModal() {
     const longTermBaseDate = parseDateKey(
-      selectedDayMeta.dateKey < appTodayKey
-        ? appTodayKey
+      selectedDayMeta.dateKey < todayKey
+        ? todayKey
         : selectedDayMeta.dateKey,
     );
     setNewFrequency("每周 1 次");
@@ -868,8 +1036,11 @@ export default function Home() {
   }
 
   function chooseLongTermYear(year: number) {
-    const month = year === 2026 && newLongTermMonth < 7 ? 7 : newLongTermMonth;
-    const minimumDay = getMinimumLongTermDay(year, month);
+    const month =
+      year === todayYear && newLongTermMonth < todayMonth
+        ? todayMonth
+        : newLongTermMonth;
+    const minimumDay = getMinimumLongTermDay(year, month, todayKey);
     const maximumDay = getDaysInMonth(year, month);
 
     setNewLongTermYear(year);
@@ -880,7 +1051,11 @@ export default function Home() {
   }
 
   function chooseLongTermMonth(month: number) {
-    const minimumDay = getMinimumLongTermDay(newLongTermYear, month);
+    const minimumDay = getMinimumLongTermDay(
+      newLongTermYear,
+      month,
+      todayKey,
+    );
     const maximumDay = getDaysInMonth(newLongTermYear, month);
 
     setNewLongTermMonth(month);
@@ -972,7 +1147,6 @@ export default function Home() {
     <div className="week-navigator" aria-label="切换周次">
       <button
         aria-label="查看上一周"
-        disabled={selectedWeekStart === firstWeekStart}
         onClick={() => changeWeek(-1)}
         type="button"
       >
@@ -980,21 +1154,21 @@ export default function Home() {
         <span>上一周</span>
       </button>
       <button
-        aria-label={isCurrentWeek ? "当前周" : "返回本周"}
+        aria-label={isActualToday ? "当前为今天" : "回到今天"}
         className="week-range-summary"
-        disabled={isCurrentWeek}
+        disabled={isActualToday}
         onClick={goToCurrentWeek}
         type="button"
       >
         <small>
-          2026 / W{String(annualWeekNumber).padStart(2, "0")}
+          {selectedDayMeta.year} / W
+          {String(annualWeekNumber).padStart(2, "0")}
         </small>
         <strong>{weekRangeLabel}</strong>
-        <em>{isCurrentWeek ? "本周" : "返回本周"}</em>
+        <em>{isActualToday ? "今天" : "回到今天"}</em>
       </button>
       <button
         aria-label="查看下一周"
-        disabled={selectedWeekStart === lastWeekStart}
         onClick={() => changeWeek(1)}
         type="button"
       >
@@ -1105,7 +1279,7 @@ export default function Home() {
         <>
           <div className="industrial-masthead">
             <div className="industrial-brand">
-              <b>HA / 2026</b>
+              <b>HA / {selectedDayMeta.year}</b>
               <small>家庭维护工作台</small>
             </div>
             <div className="industrial-period">
@@ -1290,6 +1464,10 @@ export default function Home() {
         </div>
       </section>
     );
+
+  if (!isCalendarReady) {
+    return <main aria-busy="true" className="blueprint-shell" />;
+  }
 
   return (
     <main className="blueprint-shell">
@@ -1518,14 +1696,16 @@ export default function Home() {
                     (isCurrentWeek
                       ? "本周安排"
                       : `第 ${annualWeekNumber} 周安排`)}
-                  {planPeriod === "quarter" && "第三季度"}
-                  {planPeriod === "half" && "下半年"}
+                  {planPeriod === "quarter" && quarterLabel}
+                  {planPeriod === "half" && halfLabel}
                 </h2>
                 <p>
                   {planPeriod === "week" &&
                     `${selectedDayMeta.month}月${selectedDayMeta.date}日 / 周${selectedDay} / ${selectedDayTasks.length} 项维护任务`}
-                  {planPeriod === "quarter" && "2026年第 3 季度 / 6 项深度维护"}
-                  {planPeriod === "half" && "2026年下半年 / 6 项系统保养"}
+                  {planPeriod === "quarter" &&
+                    `${todayYear}年${quarterLabel} / 6 项深度维护`}
+                  {planPeriod === "half" &&
+                    `${todayYear}年${halfLabel} / 6 项系统保养`}
                 </p>
               </div>
 
@@ -1621,11 +1801,12 @@ export default function Home() {
                   <div className="cycle-overview">
                     <div>
                       <span>
-                        {planPeriod === "quarter" ? "第三季度" : "下半年"} · 2026
+                        {planPeriod === "quarter" ? quarterLabel : halfLabel} ·{" "}
+                        {todayYear}
                       </span>
                       <strong>
                         {
-                          cyclePlans[planPeriod].filter((item) =>
+                          activeCyclePlans.filter((item) =>
                             cycleCompleted.includes(item.id),
                           ).length
                         }
@@ -1654,19 +1835,12 @@ export default function Home() {
                     }`}
                   >
                     {(planPeriod === "quarter"
-                      ? ["7月", "8月", "9月"]
-                      : [
-                          "7月",
-                          "8月",
-                          "9月",
-                          "10月",
-                          "11月",
-                          "12月",
-                        ]
-                    ).map((month, index) => (
+                      ? quarterMonths
+                      : halfMonths
+                    ).map((month) => (
                       <div key={month}>
-                        <span>{month}</span>
-                        <i className={index === 1 ? "current" : ""} />
+                        <span>{month}月</span>
+                        <i className={month === todayMonth ? "current" : ""} />
                       </div>
                     ))}
                   </div>
@@ -1676,7 +1850,7 @@ export default function Home() {
                       <span>执行 / 项目</span>
                       <span>周期档案号</span>
                     </div>
-                    {cyclePlans[planPeriod].map((item, index) => {
+                    {activeCyclePlans.map((item, index) => {
                       const isDone = cycleCompleted.includes(item.id);
                       return (
                         <label
@@ -1726,29 +1900,33 @@ export default function Home() {
                   <span>03</span>
                   <p>档案索引</p>
                 </div>
-                <h2 id="archive-title">2026年8月</h2>
-                <p>2026年8月 / 家庭维护记录</p>
+                <h2 id="archive-title">
+                  {archiveYear}年{archiveMonth}月
+                </h2>
+                <p>
+                  {archiveYear}年{archiveMonth}月 / 家庭维护记录
+                </p>
               </div>
 
               <div className="stat-grid">
                 <article>
                   <span>本月完成</span>
-                  <strong>32</strong>
-                  <small>较上月 +12%</small>
+                  <strong>{monthlyCompletionKeys.length}</strong>
+                  <small>{monthlyComparison}</small>
                 </article>
                 <article>
                   <span>连续打卡</span>
-                  <strong>06</strong>
+                  <strong>{String(consecutiveDays).padStart(2, "0")}</strong>
                   <small>天</small>
                 </article>
                 <article>
                   <span>计划完成率</span>
-                  <strong>{progress}%</strong>
+                  <strong>{weekProgress}%</strong>
                   <small>本周实时</small>
                 </article>
                 <article>
                   <span>维护区域</span>
-                  <strong>05</strong>
+                  <strong>{String(maintainedRoomCount).padStart(2, "0")}</strong>
                   <small>个区域</small>
                 </article>
               </div>
@@ -1758,13 +1936,7 @@ export default function Home() {
                   <span>区域索引</span>
                   <small>维护项目统计</small>
                 </div>
-                {[
-                  ["01", "客厅", "日常维护", "12 项"],
-                  ["02", "厨房", "清洁与消毒", "18 项"],
-                  ["03", "卧室", "除尘与整理", "09 项"],
-                  ["04", "卫生间", "深度清洁", "13 项"],
-                  ["05", "阳台", "收纳与养护", "08 项"],
-                ].map((room) => (
+                {roomArchiveRows.map((room) => (
                   <div className="index-row" key={room[0]}>
                     <b>{room[0]}</b>
                     <strong>{room[1]}</strong>
@@ -1801,7 +1973,9 @@ export default function Home() {
               <button className="reset-button" onClick={resetArchive} type="button">
                 重置本周打卡
               </button>
-              <p className="storage-note">数据仅保存在当前设备</p>
+              <p className="storage-note">
+                日期跟随手机系统 · 任务数据仅保存在当前设备
+              </p>
             </section>
           )}
         </div>
@@ -2012,7 +2186,8 @@ export default function Home() {
                                 newLongTermMonth === month ? "active" : ""
                               }
                               disabled={
-                                newLongTermYear === 2026 && month < 7
+                                newLongTermYear === todayYear &&
+                                month < todayMonth
                               }
                               key={month}
                               onClick={() => chooseLongTermMonth(month)}
@@ -2045,6 +2220,7 @@ export default function Home() {
                                 newLongTermYear,
                                 newLongTermMonth,
                                 day,
+                                todayKey,
                               )}
                               key={day}
                               onClick={() => setNewLongTermDay(day)}
