@@ -512,8 +512,8 @@ button {
 .task-card {
   position: relative;
   display: grid;
-  grid-template-columns: 28px 24px 1fr auto;
-  gap: 10px;
+  grid-template-columns: 28px 34px minmax(0, 1fr) auto;
+  column-gap: 14px;
   align-items: center;
   min-height: 76px;
   padding: 10px 15px 10px 10px;
@@ -577,7 +577,7 @@ button {
   display: grid;
   width: 42px;
   height: 42px;
-  margin-left: -9px;
+  justify-self: center;
   place-items: center;
   cursor: pointer;
   touch-action: manipulation;
@@ -597,9 +597,9 @@ button {
   display: flex;
   width: 34px;
   height: 34px;
-  margin-left: -5px;
   align-items: baseline;
   justify-content: center;
+  justify-self: center;
   border: 1px solid var(--blue);
   background: rgba(244, 244, 241, 0.76);
   color: var(--blue);
@@ -1798,8 +1798,8 @@ button {
   }
 
   .task-card {
-    grid-template-columns: 22px 24px 1fr auto;
-    gap: 7px;
+    grid-template-columns: 22px 32px minmax(0, 1fr) auto;
+    column-gap: 10px;
   }
 }
 
