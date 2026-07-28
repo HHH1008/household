@@ -6,6 +6,7 @@ import {
   KeyboardEvent,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -365,6 +366,7 @@ function getCompletionKey(dateKey: string, taskId: string) {
 }
 
 export default function Home() {
+  const appScrollRef = useRef<HTMLElement>(null);
   const [activeTab, setActiveTab] = useState<Tab>("today");
   const [planPeriod, setPlanPeriod] = useState<PlanPeriod>("week");
   const [selectedWeekStart, setSelectedWeekStart] = useState(
@@ -409,6 +411,10 @@ export default function Home() {
       // The app remains fully usable when browser storage is unavailable.
     }
   }, []);
+
+  useEffect(() => {
+    appScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  }, [activeTab]);
 
   const tasks = useMemo(() => [...baseTasks, ...customTasks], [customTasks]);
   const weekDays = useMemo(
@@ -771,7 +777,11 @@ export default function Home() {
 
   return (
     <main className="blueprint-shell">
-      <section className="mini-app" aria-label="家务档案小程序">
+      <section
+        className="mini-app"
+        aria-label="家务档案小程序"
+        ref={appScrollRef}
+      >
         <header className="app-header">
           <div className="technical-strip">
             <div>
